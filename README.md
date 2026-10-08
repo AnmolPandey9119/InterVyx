@@ -4,7 +4,7 @@
 
 **Practice Like It's Real. Perform Like a Pro.**
 
-🚀 **Try it now:** [intervyx.vercel.app](https://intervyx.vercel.app)
+🚀 **Try it now:** [intervyx-ai.vercel.app](https://intervyx-ai.vercel.app)
 
 Intervyx is an AI-powered mock interview platform built for Indian job seekers. It conducts real, adaptive interviews using a conversational AI interviewer named **Arjun**, gives you detailed, honest feedback, and detects cheating using computer vision and behavioral signals — in English, Hindi, or Hinglish, with 10 more Indian regional languages coming soon.
 
@@ -48,7 +48,6 @@ Built by a CSE team:
 - **Anmol Pandey** — [GitHub](https://github.com/AnmolPandey9119) · [LinkedIn](https://www.linkedin.com/in/anmol-pandey-240105376)
 - **Aryan Srivastava**
 - **Prateek Tripathi**
-- **Anshika Mishra**
 
 ## Contact
 
@@ -60,4 +59,4 @@ Built by a CSE team:
 
 ---
 
-**Ready to practice your next interview?** 👉 [intervyx.vercel.app](https://intervyx.vercel.app)
+**Ready to practice your next interview?** 👉 [intervyx-ai.vercel.app](https://intervyx-ai.vercel.app)
