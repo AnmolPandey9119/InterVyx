@@ -112,6 +112,8 @@
 
     /* Light-theme contrast fix for pale-on-light-tint text */
     :root:not([data-theme="dark"]) .cr-compile-error { color: #b91c1c; }
+    /* Test-case rows hamesha dark chip par hain; light mode me text dark-navy ban kar gayab ho jata tha */
+    .cr-case-row { color: rgba(255,255,255,0.88); }
 
     .hv-toast { position: fixed; bottom: 5.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(26,31,58,0.95); border: 1px solid rgba(27,111,201,0.4); color: white; padding: 0.9rem 1.5rem; border-radius: 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 12px 35px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 999; }
     .hv-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }

@@ -47,12 +47,17 @@
    // DOM text does.
    const _rootStyle = getComputedStyle(document.documentElement);
    const CHART_COLORS = {
-     primary: '#1B6FC9', primaryLight: '#F28A4B', accent: '#0B2A5B',
+     primary: '#1B6FC9', primaryLight: '#F28A4B',
+     // navy line/points dark background par dikhte nahi the -> dark theme me halka blue
+     accent: document.documentElement.getAttribute('data-theme') === 'dark' ? '#8DB8F0' : '#0B2A5B',
      success: '#4C7A5E', warning: '#f59e0b', cyan: '#5B8296',
      gridLine: _rootStyle.getPropertyValue('--hv-hairline').trim() || 'rgba(255,255,255,0.08)',
      text: _rootStyle.getPropertyValue('--hv-text-muted').trim() || 'rgba(255,255,255,0.65)'
    };
    Chart.defaults.color = CHART_COLORS.text;
+   // Charts canvas par bante hain, isliye theme toggle par page refresh karke sahi colours lagte hain.
+   new MutationObserver(function () { window.location.reload(); })
+     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
    
    function formatShortDate(iso) {

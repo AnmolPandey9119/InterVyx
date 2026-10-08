@@ -291,7 +291,7 @@
        mode me bhi dark khulta tha aur text dikhta nahi tha. Ab colours
        tokens se aate hain: light = default, dark = data-theme="dark".
        ════════════════════════════════════════════ */
-    .account-big-panel, .limit-modal {
+    .account-big-panel, .limit-modal, .mini-dropdown {
       --ap-bg: #FFFBF3;
       --ap-text: #0B2A5B;
       --ap-text-2: rgba(11,42,91,0.78);
@@ -307,7 +307,8 @@
       --ap-shadow: 0 30px 90px rgba(11,42,91,0.28);
     }
     :root[data-theme="dark"] .account-big-panel,
-    :root[data-theme="dark"] .limit-modal {
+    :root[data-theme="dark"] .limit-modal,
+    :root[data-theme="dark"] .mini-dropdown {
       --ap-bg: #12162c;
       --ap-text: #ffffff;
       --ap-text-2: rgba(255,255,255,0.88);
@@ -383,6 +384,19 @@
     .limit-modal-title { color: var(--ap-gold-text); }
     .limit-modal-sub { color: var(--ap-text-2); }
     .limit-modal-btn-secondary { background: var(--ap-surface); border-color: var(--ap-border); color: var(--ap-text); }
+
+    /* Profile dropdown (top-right avatar) — bhi light mode me dark khulta tha */
+    .mini-dropdown { background: var(--ap-bg); border-color: var(--ap-border); box-shadow: var(--ap-shadow); }
+    :root[data-theme="dark"] .mini-dropdown { background: #161b38; }
+    .mini-dropdown-email { color: var(--ap-text-2); }
+    .mini-dropdown-greeting { color: var(--ap-text); }
+    .manage-account-btn { background: var(--ap-surface); color: var(--ap-text); }
+    .mini-dropdown-divider { background: var(--ap-line); }
+    :root:not([data-theme="dark"]) .mini-dropdown-signout { color: #dc2626; }
+    :root:not([data-theme="dark"]) .mini-dropdown-signout:hover { background: rgba(239,68,68,0.10); }
+
+    /* Best Score number: navy (#0B2A5B) dark theme me dark card par dikhta nahi tha */
+    :root[data-theme="dark"] .stat-pink { color: #8DB8F0; }
   </style>
 </head>
 <body>

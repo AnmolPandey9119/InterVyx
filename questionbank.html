@@ -122,6 +122,25 @@
     /* Light-theme contrast fix for pale-on-light-tint text */
     :root:not([data-theme="dark"]) .qb-compile-error { color: #b91c1c; }
 
+    /* .qb-modal hamesha dark gradient hai, lekin light mode me uska text/surface
+       tokens dark-navy ban jate the (dark par dark = invisible). Modal ke andar
+       dark-theme tokens force kar diye. */
+    .qb-modal {
+      color: #ffffff;
+      --hv-text-strong: #ffffff;
+      --hv-text-muted: rgba(255,255,255,0.72);
+      --hv-text-faint: rgba(255,255,255,0.5);
+      --hv-text-hover: rgba(255,255,255,0.92);
+      --hv-surface-1: rgba(255,255,255,0.035);
+      --hv-surface-2: rgba(255,255,255,0.06);
+      --hv-surface-3: rgba(255,255,255,0.08);
+      --hv-surface-4: rgba(255,255,255,0.12);
+      --hv-hairline: rgba(255,255,255,0.1);
+      --hv-bg-start: #061A3E;
+      --hv-bg-mid: #0B2A5B;
+    }
+    .qb-case-row { color: rgba(255,255,255,0.88); }
+
     @media (max-width: 640px) {
       .qb-modal { padding: 1.4rem; }
       .qb-stat-pill { margin-left: 0; }
