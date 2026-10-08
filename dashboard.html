@@ -284,6 +284,105 @@
     .resend-link { background: none; border: none; color: #F28A4B; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; text-align: center; padding: 0.3rem; }
     .resend-link:disabled { color: rgba(255,255,255,0.6); cursor: default; }
     .resend-link:not(:disabled):hover { color: #F28A4B; text-decoration: underline; }
+
+    /* ════════════════════════════════════════════
+       THEME-AWARE ACCOUNT PANEL + LIMIT POPUP
+       Pehle panel hamesha dark tha (hard-coded colours), isliye light
+       mode me bhi dark khulta tha aur text dikhta nahi tha. Ab colours
+       tokens se aate hain: light = default, dark = data-theme="dark".
+       ════════════════════════════════════════════ */
+    .account-big-panel, .limit-modal {
+      --ap-bg: #FFFBF3;
+      --ap-text: #0B2A5B;
+      --ap-text-2: rgba(11,42,91,0.78);
+      --ap-text-3: rgba(11,42,91,0.62);
+      --ap-surface: rgba(11,42,91,0.04);
+      --ap-surface-hover: rgba(11,42,91,0.08);
+      --ap-border: rgba(11,42,91,0.14);
+      --ap-line: rgba(11,42,91,0.10);
+      --ap-gold-text: #92400e;
+      --ap-gold-bg: rgba(217,119,6,0.12);
+      --ap-gold-border: rgba(180,83,9,0.40);
+      --ap-ok-text: #166534;
+      --ap-shadow: 0 30px 90px rgba(11,42,91,0.28);
+    }
+    :root[data-theme="dark"] .account-big-panel,
+    :root[data-theme="dark"] .limit-modal {
+      --ap-bg: #12162c;
+      --ap-text: #ffffff;
+      --ap-text-2: rgba(255,255,255,0.88);
+      --ap-text-3: rgba(255,255,255,0.72);
+      --ap-surface: rgba(255,255,255,0.05);
+      --ap-surface-hover: rgba(255,255,255,0.10);
+      --ap-border: rgba(255,255,255,0.16);
+      --ap-line: rgba(255,255,255,0.10);
+      --ap-gold-text: #fde68a;
+      --ap-gold-bg: rgba(250,204,21,0.16);
+      --ap-gold-border: rgba(250,204,21,0.45);
+      --ap-ok-text: #4ade80;
+      --ap-shadow: 0 30px 90px rgba(0,0,0,0.6);
+    }
+
+    /* Panel shell */
+    .account-big-panel { background: var(--ap-bg); box-shadow: var(--ap-shadow); color: var(--ap-text); }
+    .big-panel-close { background: var(--ap-surface); border-color: var(--ap-border); color: var(--ap-text); }
+    .big-panel-close:hover { background: var(--ap-surface-hover); }
+    .account-big-panel .section-title { color: var(--ap-text); }
+    .account-big-panel .dashboard-sub { color: var(--ap-text-2); }
+
+    /* Left sidebar */
+    .account-sidebar { background: var(--ap-surface); border-color: var(--ap-border); }
+    .sidebar-link { color: var(--ap-text-2); }
+    .sidebar-link:hover { background: var(--ap-surface-hover); color: var(--ap-text); }
+    .sidebar-link.active { color: var(--ap-text); }
+    .sidebar-divider { background: var(--ap-line); }
+    :root:not([data-theme="dark"]) .sidebar-link-logout { color: #dc2626; }
+    :root:not([data-theme="dark"]) .sidebar-link-logout:hover { background: rgba(239,68,68,0.10); color: #dc2626; }
+
+    /* Personal info */
+    .profile-card, .password-card { background: var(--ap-surface); border-color: var(--ap-border); }
+    .profile-avatar, .profile-avatar-camera { border-color: var(--ap-bg); }
+    .profile-name { color: var(--ap-text); }
+    .profile-email, .profile-membership-sub, .otp-sent-note, .password-hint { color: var(--ap-text-2); }
+    .profile-membership-title { color: var(--ap-text-2); }
+    .profile-membership.is-active { border-color: var(--ap-gold-border); }
+    .profile-membership-title.is-gold { color: var(--ap-gold-text); }
+    .field-edit-btn { background: var(--ap-surface); border-color: var(--ap-border); color: var(--ap-text-2); }
+    .field-edit-btn:hover { color: var(--ap-text); }
+    .field-btn-cancel { background: var(--ap-surface); border-color: var(--ap-border); color: var(--ap-text-2); }
+    .field-btn-cancel:hover { background: var(--ap-surface-hover); }
+    .resend-link:disabled { color: var(--ap-text-3); }
+
+    /* Plans */
+    .plan-card { background: var(--ap-surface); }
+    .plan-card.featured { background: linear-gradient(135deg, rgba(27,111,201,0.16), rgba(11,42,91,0.06)); }
+    .plan-badge-outline { background: var(--ap-surface); border-color: var(--ap-border); color: var(--ap-text-2); }
+    .plan-name, .plan-price { color: var(--ap-text); }
+    .plan-cycle { color: var(--ap-text-2); }
+    .plan-features li { color: var(--ap-text-2); }
+    .plan-btn:not(.primary) { background: var(--ap-surface); border-color: rgba(27,111,201,0.45); color: var(--ap-text); }
+    .plan-btn:not(.primary):hover { background: var(--ap-surface-hover); }
+    .plans-footnote { color: var(--ap-text-2); }
+
+    /* Active plan banner */
+    .active-plan-banner { border-color: var(--ap-gold-border); }
+    .active-plan-name { color: var(--ap-gold-text); }
+    .active-plan-sub { color: var(--ap-text-2); }
+    .active-plan-days { background: var(--ap-gold-bg); border-color: var(--ap-gold-border); color: var(--ap-gold-text); }
+
+    /* Payment history */
+    .history-section-title { color: var(--ap-text); }
+    .history-empty { color: var(--ap-text-2); }
+    .history-table th { color: var(--ap-text-2); border-bottom-color: var(--ap-border); }
+    .history-table td { color: var(--ap-text-2); border-bottom-color: var(--ap-line); }
+    .history-table td.hv-amount { color: var(--ap-text); }
+    .history-status-pill { color: var(--ap-ok-text); }
+
+    /* Limit / plan-expired popup */
+    .limit-modal { background: var(--ap-bg); box-shadow: var(--ap-shadow); }
+    .limit-modal-title { color: var(--ap-gold-text); }
+    .limit-modal-sub { color: var(--ap-text-2); }
+    .limit-modal-btn-secondary { background: var(--ap-surface); border-color: var(--ap-border); color: var(--ap-text); }
   </style>
 </head>
 <body>
