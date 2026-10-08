@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intervyx — Interview</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <meta name="robots" content="noindex, follow">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <!-- SETUP PAGE -->
+        <div id="startInterviewPage" class="page active">
+            <div class="interview-setup">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+                    <div style="font-size:0.85rem;color:var(--hv-text-muted)" id="loggedInAs"></div>
+                    <button onclick="handleLogout()" style="background:var(--hv-surface-2);border:1px solid var(--hv-hairline);border-radius:8px;color:var(--hv-text-muted);font-size:0.8rem;padding:0.4rem 0.85rem;cursor:pointer;font-family:inherit">Logout</button>
+                </div>
+                <button class="back-btn" onclick="window.location.href='/dashboard'" style="margin-bottom:1rem">← Dashboard</button>
+                <h2 class="setup-title">Start New Interview</h2>
+                
+                <!-- Step 1: Select Sector -->
+                <div id="stepSector" class="setup-step">
+                    <div class="setup-section-divider">Select Employment Sector</div>
+                    <div class="sector-selector">
+                        <div class="sector-card" id="sectorPrivate" onclick="selectSector('private')">
+                            <div class="sector-icon">🏢</div>
+                            <div class="sector-title">Private Sector</div>
+                            <div class="sector-desc">Corporate, startups, tech companies, etc.</div>
+                        </div>
+                        <div class="sector-card" id="sectorGovernment" onclick="selectSector('government')">
+                            <div class="sector-icon">🏛️</div>
+                            <div class="sector-title">Government Sector</div>
+                            <div class="sector-desc">UPSC, SSC, Banking, Railway, Defence, etc.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Private Sector Setup -->
+                <div id="stepPrivate" class="setup-step" style="display:none;">
+                    <button class="back-btn" onclick="goBackToSector()">← Back</button>
+                    <div class="form-group">
+                        <label class="form-label">Job Domain <span style="color:var(--hv-text-muted);font-weight:500;font-size:0.85rem">(optional if you provide a JD below)</span></label>
+                        <select id="privateDomain" class="select-input" onchange="updatePrivateRoles()">
+                            <option value="">Select a domain</option>
+                            <option value="technology">Technology</option>
+                            <option value="hr_management">HR & Management</option>
+                            <option value="finance_banking">Finance & Banking (Private)</option>
+                            <option value="marketing_sales">Marketing & Sales</option>
+                            <option value="design_product">Design & Product</option>
+                            <option value="other">Other (not listed)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="privateDomainCustomGroup" style="display:none;">
+                        <label class="form-label">Specify Job Domain<span class="required-mark">*</span></label>
+                        <input type="text" id="privateDomainCustom" class="select-input" placeholder="e.g. EdTech, Healthcare Tech, Legal">
+                    </div>
+                    <div class="form-group" id="privateRoleGroup" style="display:none;">
+                        <label class="form-label">Job Role<span class="required-mark">*</span></label>
+                        <select id="privateRole" class="select-input" onchange="togglePrivateRoleCustom()"></select>
+                    </div>
+                    <div class="form-group" id="privateRoleCustomGroup" style="display:none;">
+                        <label class="form-label">Specify Job Role<span class="required-mark">*</span></label>
+                        <input type="text" id="privateRoleCustom" class="select-input" placeholder="e.g. Growth Hacker, ML Ops Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Interview Language</label>
+                        <select id="interviewLanguagePrivate" class="select-input">
+                            <option value="english" selected>English</option>
+                            <option value="hinglish">Hinglish</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Company <span style="color:var(--hv-text-muted);font-weight:500;font-size:0.85rem">(optional)</span></label>
+                        <input type="text" id="targetCompany" class="select-input" placeholder="e.g. Google, Microsoft, Amazon, TCS">
+                        <div style="font-size:0.78rem;color:var(--hv-text-muted);margin-top:0.4rem">Tell us the company you're targeting and Arjun will shape his questions in that company's real interview style — he just won't say the company's name out loud.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Interview Round</label>
+                        <select id="interviewRound" class="select-input">
+                            <option value="mixed" selected>Mixed (Technical + HR)</option>
+                            <option value="technical">Technical Round</option>
+                            <option value="hr">HR Round</option>
+                        </select>
+                        <div style="font-size:0.78rem;color:var(--hv-text-muted);margin-top:0.4rem">Technical = deep skill/role assessment like a real technical round. HR = behavioral, motivation, culture-fit focused. Mixed = a bit of both, like most real interviews.</div>
+                    </div>
+                    <div class="setup-section-divider">Resume</div>
+                    <div class="form-group">
+                        <label class="form-label">Upload Your Resume<span class="required-mark">*</span> <span style="color:var(--hv-text-muted);font-weight:500;font-size:0.85rem">PDF or plain text</span></label>
+                        <div class="resume-upload-zone" id="resumeDropZone">
+                            <input type="file" id="resumeFileInput" accept=".pdf,.txt,.doc,.docx" onchange="handleResumeUpload(event)">
+                            <span class="resume-upload-icon">📄</span>
+                            <div class="resume-upload-title">Drop your resume here or click to browse</div>
+                            <div class="resume-upload-hint">PDF, TXT, DOC, DOCX · Max 5MB</div>
+                        </div>
+                        <div id="resumeParsingIndicator" class="resume-parsing-indicator" style="display:none">
+                            <div class="resume-parsing-dots"><span></span><span></span><span></span></div>
+                            <span id="resumeParsingStatusText">Reading your resume…</span>
+                        </div>
+                        <div id="resumeUploadedInfo" style="display:none"></div>
+                    </div>
+
+                    <div class="setup-section-divider">Job Description <span style="color:var(--hv-text-muted);font-weight:500;font-size:0.85rem">(Optional — crash-prep for a specific job)</span></div>
+                    <div class="form-group">
+                        <div class="biodata-option-group">
+                            <div class="biodata-option" id="jdPasteOption" onclick="selectJdOption('paste')">
+                                <span class="biodata-option-icon">📝</span>
+                                <span class="biodata-option-text">Paste JD Text</span>
+                            </div>
+                            <div class="biodata-option" id="jdUploadOption" onclick="selectJdOption('upload')">
+                                <span class="biodata-option-icon">📤</span>
+                                <span class="biodata-option-text">Upload JD File</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- JD Paste -->
+                    <div id="jdPasteSection" class="form-group" style="display:none;">
+                        <textarea id="jdTextInput" class="select-input" rows="6" style="resize:vertical;font-family:inherit;line-height:1.5" placeholder="Paste the job description here — responsibilities, required skills, etc." oninput="handleJdTextInput(event)"></textarea>
+                    </div>
+                    <!-- JD Upload -->
+                    <div id="jdUploadSection" class="form-group" style="display:none;">
+                        <div class="resume-upload-zone" id="jdDropZone">
+                            <input type="file" id="jdFileInput" accept=".pdf,.txt,.doc,.docx" onchange="handleJdUpload(event)">
+                            <span class="resume-upload-icon">📋</span>
+                            <div class="resume-upload-title">Drop the job description here or click to browse</div>
+                            <div class="resume-upload-hint">PDF, TXT, DOC, DOCX · Max 5MB</div>
+                        </div>
+                        <div id="jdParsingIndicator" class="resume-parsing-indicator" style="display:none">
+                            <div class="resume-parsing-dots"><span></span><span></span><span></span></div>
+                            <span id="jdParsingStatusText">Reading the job description…</span>
+                        </div>
+                        <div id="jdUploadedInfo" style="display:none"></div>
+                    </div>
+
+                    <div id="setupError" class="error-message"></div>
+                    <button class="primary-btn" onclick="handleInterviewStart('private')">Begin Interview</button>
+                </div>
+
+                <!-- Step 2: Government Sector Setup -->
+                <div id="stepGovernment" class="setup-step" style="display:none;">
+                    <button class="back-btn" onclick="goBackToSector()">← Back</button>
+                    <div class="form-group">
+                        <label class="form-label">Government Job Domain<span class="required-mark">*</span></label>
+                        <select id="governmentDomain" class="select-input" onchange="updateGovernmentRoles()">
+                            <option value="">Select a domain</option>
+                            <option value="upsc">UPSC</option>
+                            <option value="ssc">SSC</option>
+                            <option value="banking">Banking</option>
+                            <option value="railway">Railway</option>
+                            <option value="defence">Defence</option>
+                            <option value="state_psc">State PSC</option>
+                            <option value="teaching">Teaching</option>
+                            <option value="police">Police</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="governmentRoleGroup" style="display:none;">
+                        <label class="form-label">Job Role<span class="required-mark">*</span></label>
+                        <select id="governmentRole" class="select-input"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Interview Language</label>
+                        <div style="font-size:0.78rem;color:var(--hv-text-muted);margin-bottom:0.5rem">Regional languages coming soon with premium voice support. Arjun will ask all questions and give feedback in this language. Voice quality for regional languages depends on your browser/device — text will always be correct even if the spoken voice sounds different.</div>
+                        <select id="interviewLanguageGov" class="select-input">
+                          <option value="english" selected>English</option>
+                          <option value="hinglish">Hinglish</option>
+                          <option value="hindi">हिंदी (Hindi)</option>
+                          <optgroup label="Regional Languages — Coming Soon">
+                              <option value="bengali" disabled>বাংলা (Bengali) 🔒 Coming Soon</option>
+                              <option value="tamil" disabled>தமிழ் (Tamil) 🔒 Coming Soon</option>
+                              <option value="telugu" disabled>తెలుగు (Telugu) 🔒 Coming Soon</option>
+                              <option value="marathi" disabled>मराठी (Marathi) 🔒 Coming Soon</option>
+                              <option value="gujarati" disabled>ગુજરાતી (Gujarati) 🔒 Coming Soon</option>
+                              <option value="kannada" disabled>ಕನ್ನಡ (Kannada) 🔒 Coming Soon</option>
+                              <option value="malayalam" disabled>മലയാളം (Malayalam) 🔒 Coming Soon</option>
+                              <option value="punjabi" disabled>ਪੰਜਾਬੀ (Punjabi) 🔒 Coming Soon</option>
+                              <option value="odia" disabled>ଓଡ଼ିଆ (Odia) 🔒 Coming Soon</option>
+                              <option value="urdu" disabled>اردو (Urdu) 🔒 Coming Soon</option>
+                          </optgroup>
+                      </select>
+                    </div>
+                    <div class="setup-section-divider">Biodata</div>
+                    <div class="form-group">
+                        <div class="biodata-option-group">
+                            <div class="biodata-option" id="biodataUploadOption" onclick="selectBiodataOption('upload')">
+                                <span class="biodata-option-icon">📤</span>
+                                <span class="biodata-option-text">Upload Biodata</span>
+                            </div>
+                            <div class="biodata-option" id="biodataFormOption" onclick="selectBiodataOption('form')">
+                                <span class="biodata-option-icon">📝</span>
+                                <span class="biodata-option-text">Fill Biodata Form</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Biodata Upload -->
+                    <div id="biodataUploadSection" class="form-group" style="display:none;">
+                        <div class="resume-upload-zone" id="biodataDropZone">
+                            <input type="file" id="biodataFileInput" accept=".pdf,.txt,.doc,.docx" onchange="handleBiodataUpload(event)">
+                            <span class="resume-upload-icon">📄</span>
+                            <div class="resume-upload-title">Drop your biodata here or click to browse</div>
+                            <div class="resume-upload-hint">PDF, TXT, DOC, DOCX · Max 5MB</div>
+                        </div>
+                        <div id="biodataParsingIndicator" class="resume-parsing-indicator" style="display:none">
+                            <div class="resume-parsing-dots"><span></span><span></span><span></span></div>
+                            <span id="biodataParsingStatusText">Reading your biodata…</span>
+                        </div>
+                        <div id="biodataUploadedInfo" style="display:none"></div>
+                    </div>
+                    <!-- Biodata Form -->
+                    <div id="biodataFormSection" class="form-group" style="display:none;">
+                        <div class="form-group">
+                            <label class="form-label">Personal Information</label>
+                            <div class="form-row">
+                                <input type="text" id="bioFullName" class="form-input" placeholder="Full Name">
+                                <input type="text" id="bioFatherName" class="form-input" placeholder="Father's Name">
+                            </div>
+                            <div class="form-row">
+                                <input type="text" id="bioMotherName" class="form-input" placeholder="Mother's Name">
+                                <input type="date" id="bioDOB" class="form-input" placeholder="Date of Birth">
+                            </div>
+                            <div class="form-row">
+                                <select id="bioGender" class="select-input">
+                                    <option value="">Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <select id="bioCategory" class="select-input">
+                                    <option value="">Category</option>
+                                    <option value="general">General</option>
+                                    <option value="obc">OBC</option>
+                                    <option value="sc">SC</option>
+                                    <option value="st">ST</option>
+                                    <option value="ews">EWS</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <input type="text" id="bioNationality" class="form-input" placeholder="Nationality">
+                                <select id="bioMaritalStatus" class="select-input">
+                                    <option value="">Marital Status</option>
+                                    <option value="single">Single</option>
+                                    <option value="married">Married</option>
+                                    <option value="divorced">Divorced</option>
+                                    <option value="widowed">Widowed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Details</label>
+                            <div class="form-row">
+                                <input type="tel" id="bioMobile" class="form-input" placeholder="Mobile Number">
+                                <input type="email" id="bioEmail" class="form-input" placeholder="Email">
+                            </div>
+                            <input type="text" id="bioAddress" class="form-input" placeholder="Address">
+                            <div class="form-row">
+                                <input type="text" id="bioState" class="form-input" placeholder="State">
+                                <input type="text" id="bioDistrict" class="form-input" placeholder="District">
+                                <input type="text" id="bioPincode" class="form-input" placeholder="PIN Code">
+                            </div>
+                        </div>
+                        <div class="form-group" id="educationGroup">
+                            <label class="form-label">Educational Qualification <button type="button" class="add-btn" onclick="addEducation()">+ Add</button></label>
+                            <div id="educationList"></div>
+                        </div>
+                        <div class="form-group" id="competitiveExamGroup">
+                            <label class="form-label">Competitive Examinations <button type="button" class="add-btn" onclick="addCompetitiveExam()">+ Add</button></label>
+                            <div id="competitiveExamList"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Skills</label>
+                            <input type="text" id="bioComputerSkills" class="form-input" placeholder="Computer Skills">
+                            <input type="text" id="bioTypingSpeed" class="form-input" placeholder="Typing Speed (e.g. 40 WPM)">
+                            <input type="text" id="bioLanguages" class="form-input" placeholder="Languages Known">
+                            <input type="text" id="bioTechnicalSkills" class="form-input" placeholder="Technical Skills">
+                        </div>
+                        <div class="form-group" id="experienceGroup">
+                            <label class="form-label">Experience (Optional) <button type="button" class="add-btn" onclick="addExperience()">+ Add</button></label>
+                            <div id="experienceList"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Achievements (Optional)</label>
+                            <textarea id="bioAchievements" class="form-input" rows="3" placeholder="Your achievements..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hobbies (Optional)</label>
+                            <textarea id="bioHobbies" class="form-input" rows="2" placeholder="Your hobbies..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tell us about yourself (Optional, Max 200 words)</label>
+                        <textarea id="candidateSummary" class="form-input" rows="4" maxlength="1000" placeholder="Brief introduction about yourself..."></textarea>
+                        <div class="char-counter" id="charCounter">0/1000</div>
+                    </div>
+                    <div id="setupErrorGov" class="error-message"></div>
+                    <button class="primary-btn" onclick="handleInterviewStart('government')">Begin Interview</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVE INTERVIEW PAGE -->
+        <div id="activeInterviewPage" class="page">
+          <div class="interview-header-bar">
+            <div class="interview-info-bar">
+              <span class="recording-indicator">🔴 Recording</span>
+              <span class="interview-timer" id="interviewTimer">00:00</span>
+            </div>
+            <button class="end-interview-btn" onclick="requestEndInterview()">End Interview</button>
+          </div>
+          <div class="interview-content">
+            <div class="camera-section">
+              <div>
+                <div class="video-label">🤖 Arjun — AI Interviewer</div>
+                <div class="ai-avatar-wrap">
+                  <video id="aiAvatarVideo" src="assets/avatar.mp4" loop muted playsinline></video>
+                  <div class="avatar-status">
+                    <div class="avatar-status-dot" id="avatarDot"></div>
+                    <span id="avatarStatusText">Listening...</span>
+                  </div>
+                </div>
+                <div class="ai-bubble" id="aiBubble" style="margin-top:0.75rem">Hi! I'm Arjun. Let's begin when you're ready.</div>
+                <div id="faceCheckRetryContainer" style="margin-top:0.75rem;text-align:center"></div>
+                <div class="ai-thinking" id="aiThinking">
+                  <div class="thinking-dots"><span></span><span></span><span></span></div>
+                  <span>Arjun is thinking...</span>
+                </div>
+              </div>
+              <div>
+                <div class="video-label">📹 You</div>
+                <video id="candidateVideo" autoplay muted playsinline></video>
+                <div id="cameraPlaceholder" class="camera-placeholder">
+                  <div style="font-size:3rem;opacity:0.4">📹</div>
+                </div>
+              </div>
+              <div class="camera-controls">
+                <button class="control-btn active" id="toggleCameraBtn" onclick="toggleCamera()">📷 Camera On</button>
+              </div>
+              <div style="font-size:0.72rem;color:var(--hv-text-muted);margin-top:0.35rem;line-height:1.4">
+                🔒 Your mic stays on for the full session — Arjun controls when it's actively capturing your answer, and all audio is monitored for interview integrity.
+              </div>
+              <div class="confidence-meter">
+                <div class="confidence-label">
+                  <span>Confidence</span>
+                  <span class="confidence-score" id="confidenceScore">—</span>
+                </div>
+                <div class="confidence-bar">
+                  <div class="confidence-fill" id="confidenceFill" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-section">
+              <div class="question-card">
+                <div class="question-number" id="questionNumber">Question 1</div>
+                <h2 class="question-text" id="currentQuestion">Preparing your first question...</h2>
+              </div>
+              <div class="answer-section">
+                <label class="form-label">Your Answer</label>
+                <div id="speechStatus" class="speech-status">🎙️ Listening... speak now</div>
+                <textarea id="answerInput" class="answer-textarea" placeholder="Type your answer or use the microphone..." rows="5" oninput="noteSpeechActivity()"></textarea>
+                <div class="answer-actions">
+                  <button class="secondary-btn" onclick="skipQuestion()">Skip</button>
+                  <button class="primary-btn" style="width:auto;padding:0.9rem 2rem;" onclick="submitAnswer()">Submit Answer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/fullscreen-guard.js"></script>
+  <script src="js/cheating.js"></script>
+  <script src="js/interview/state.js"></script>
+  <script src="js/interview/setup.js"></script>
+  <script src="js/interview/media.js"></script>
+  <script src="js/interview/speech.js"></script>
+  <script src="js/interview/conversation.js"></script>
+  <script src="js/interview/recording.js"></script>
+  <script>
+    // Auth check — logged in नहीं है तो /auth पर भेजें
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!authToken) {
+        window.location.href = '/auth';
+        return;
+      }
+      const el = document.getElementById('loggedInAs');
+      if (el && currentUser) el.textContent = `👤 ${currentUser.name}`;
+    });
+
+    // Logout
+    function handleLogout() {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('hv_token');
+      localStorage.removeItem('hv_user');
+      window.location.href = '/auth';
+    }
+
+    // showPage helper (interview.js uses this)
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+    }
+  </script>
+</body>
+</html>

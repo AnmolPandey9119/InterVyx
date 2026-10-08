@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — Intervyx</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <meta name="description" content="Get in touch with the Intervyx team — support, feedback, billing questions, and more.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Anmol Pandey">
+  <link rel="canonical" href="https://intervyx.vercel.app/contact">
+  <meta name="theme-color" content="#0B2A5B">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://intervyx.vercel.app/contact">
+  <meta property="og:site_name" content="Intervyx">
+  <meta property="og:title" content="Contact Us — Intervyx">
+  <meta property="og:description" content="Get in touch with the Intervyx team — support, feedback, billing questions, and more.">
+  <meta property="og:image" content="https://intervyx.vercel.app/assets/og-image.jpg">
+  <meta property="og:image:alt" content="Intervyx — AI-powered mock interview platform for Indian job seekers">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:locale" content="en_IN">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Contact Us — Intervyx">
+  <meta name="twitter:description" content="Get in touch with the Intervyx team — support, feedback, billing questions, and more.">
+  <meta name="twitter:image" content="https://intervyx.vercel.app/assets/og-image.jpg">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://intervyx.vercel.app/" },
+      { "@type": "ListItem", "position": 2, "name": "Contact", "item": "https://intervyx.vercel.app/contact" }
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
+  <style>
+    :root {
+      --hv-navy: #0B2A5B;
+      --hv-terracotta: #1B6FC9;
+      --hv-terracotta-dark: #14417A;
+      --hv-cream: #FFFDF9;
+      --hv-charcoal: #1F2528;
+      --hv-stone: #756F69;
+      --hv-shadow-2: 0 16px 40px rgba(11,42,91,0.14);
+      --hv-ink: var(--hv-navy);
+      --hv-body: var(--hv-charcoal);
+      --hv-body-muted: var(--hv-stone);
+      --hv-mesh-bg: #FCF1E4;
+      --hv-glass-strong: rgba(255,253,249,0.82);
+      --hv-glass-border: rgba(255,255,255,0.65);
+      --hv-card-bg: linear-gradient(180deg, rgba(11,42,91,0.035), rgba(11,42,91,0.012));
+      --hv-card-border: rgba(11,42,91,0.1);
+      --hv-card-bg-hover: linear-gradient(180deg, rgba(11,42,91,0.06), rgba(11,42,91,0.02));
+    }
+    :root[data-theme="dark"] {
+      --hv-ink: var(--hv-cream);
+      --hv-body: #D9D2C6;
+      --hv-body-muted: #9C9488;
+      --hv-mesh-bg: #0B161E;
+      --hv-glass-strong: rgba(6,26,62,0.8);
+      --hv-glass-border: rgba(255,255,255,0.1);
+      --hv-shadow-2: 0 16px 40px rgba(0,0,0,0.4);
+      --hv-card-bg: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+      --hv-card-border: rgba(255,255,255,0.09);
+      --hv-card-bg-hover: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--hv-mesh-bg);
+      color: var(--hv-ink);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -10% -10% auto -10%;
+      height: 130vh;
+      background:
+        radial-gradient(50% 40% at 15% 0%, rgba(27,111,201,0.14) 0%, transparent 60%),
+        radial-gradient(40% 35% at 90% 10%, rgba(11,42,91,0.09) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.15rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--hv-glass-strong);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      border-bottom: 1px solid var(--hv-glass-border);
+    }
+    .logo-text {
+      font-size: 1.25rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--hv-terracotta), var(--hv-navy));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-decoration: none;
+    }
+    nav a.back {
+      color: var(--hv-body-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600;
+      transition: color 0.2s ease, transform 0.2s ease; display: inline-block;
+    }
+    nav a.back:hover { color: var(--hv-ink); transform: translateX(-3px); }
+    .nav-theme-toggle {
+      width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--hv-card-border);
+      background: var(--hv-card-bg); cursor: pointer; margin-left: 0.75rem;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;
+      transition: transform 0.2s ease;
+    }
+    .nav-theme-toggle:hover { transform: scale(1.08); }
+
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 8rem 2rem 6rem;
+      position: relative; z-index: 1;
+      animation: pageFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes pageFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    h1 { font-family: 'Fraunces', serif;
+      font-size: clamp(2rem, 5vw, 2.85rem);
+      font-weight: 900;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+      color: var(--hv-ink);
+    }
+    .subtitle {
+      color: var(--hv-body-muted);
+      font-size: 1rem;
+      margin-bottom: 3rem;
+      max-width: 560px;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.1rem;
+      margin-bottom: 2.5rem;
+    }
+    .contact-card {
+      background: var(--hv-card-bg);
+      border: 1px solid var(--hv-card-border);
+      border-radius: 18px;
+      padding: 1.6rem;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
+    }
+    .contact-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(27,111,201,0.6), transparent);
+      opacity: 0; transition: opacity 0.25s ease;
+    }
+    .contact-card:hover {
+      border-color: rgba(27,111,201,0.55);
+      background: var(--hv-card-bg-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--hv-shadow-2);
+    }
+    .contact-card:hover::before { opacity: 1; }
+    .contact-card .icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, rgba(242,138,75,0.24), rgba(11,42,91,0.14));
+      border: 1px solid rgba(242,138,75,0.3);
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    .contact-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: var(--hv-ink);
+    }
+    .contact-card p {
+      color: var(--hv-body-muted);
+      font-size: 0.88rem;
+      margin: 0;
+    }
+    .contact-card .value {
+      color: var(--hv-terracotta-dark);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+      word-break: break-word;
+    }
+
+    h2 { font-family: 'Fraunces', serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin: 2.5rem 0 1rem;
+      color: var(--hv-ink);
+      letter-spacing: -0.01em;
+    }
+    p, li {
+      color: var(--hv-body);
+      font-size: 0.98rem;
+      margin-bottom: 0.9rem;
+    }
+    ul { padding-left: 1.4rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.5rem; }
+    a.inline { color: var(--hv-terracotta-dark); transition: color 0.2s ease; }
+    a.inline:hover { color: var(--hv-ink); }
+
+    .callout {
+      background: rgba(27,111,201,0.09);
+      border: 1px solid rgba(27,111,201,0.28);
+      border-left: 3px solid var(--hv-terracotta);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 0.92rem;
+      color: var(--hv-body);
+      box-shadow: 0 8px 24px rgba(27,111,201,0.12);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <script src="/js/legal-nav.js"></script>
+
+  <main>
+    <h1>Contact Us</h1>
+    <p class="subtitle">Have a question, ran into a bug, or want to talk billing? Reach out below — we usually reply within 1–2 business days.</p>
+
+    <div class="contact-grid">
+      <a class="contact-card" href="mailto:hireviewadmin@gmail.com">
+        <div class="icon">✉️</div>
+        <h3>Email</h3>
+        <p>General questions, account help, feedback</p>
+        <div class="value">hireviewadmin@gmail.com</div>
+      </a>
+
+      <a class="contact-card" href="/refund-policy">
+        <div class="icon">💳</div>
+        <h3>Billing &amp; Refunds</h3>
+        <p>Payment issues or refund requests</p>
+        <div class="value">See Refund Policy →</div>
+      </a>
+
+      <a class="contact-card" href="/faq">
+        <div class="icon">💬</div>
+        <h3>FAQ</h3>
+        <p>Quick answers to common questions</p>
+        <div class="value">Browse FAQ →</div>
+      </a>
+
+      <a class="contact-card" href="https://github.com/AnmolPandey9119/Intervyx" target="_blank" rel="noopener">
+        <div class="icon">🐙</div>
+        <h3>GitHub</h3>
+        <p>Report a bug or view the source</p>
+        <div class="value">View repository →</div>
+      </a>
+    </div>
+
+    <div class="callout">
+      <strong>Tip:</strong> if you're writing in about an account or a specific interview session, mention the email address on your account so we can look it up faster.
+    </div>
+
+    <h2>What to include in your message</h2>
+    <ul>
+      <li>A short description of what's going wrong or what you're asking about</li>
+      <li>The email address associated with your Intervyx account (if applicable)</li>
+      <li>Screenshots, if it's a display or technical issue</li>
+    </ul>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/footer.js"></script>
+  <script src="js/translate.js"></script>
+  <script src="js/assistant-widget.js"></script>
+</body>
+</html>

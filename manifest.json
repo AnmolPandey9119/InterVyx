@@ -1,0 +1,19 @@
+{
+    "name": "Intervyx — AI Interview Prep",
+    "short_name": "Intervyx",
+    "description": "AI-powered mock interviews, aptitude tests, coding rounds, analytics and leaderboard — all in one place.",
+    "start_url": "/dashboard",
+    "id": "/dashboard",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#0B2A5B",
+    "theme_color": "#0B2A5B",
+    "orientation": "portrait-primary",
+    "icons": [
+      { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+      { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+      { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+      { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ],
+    "categories": ["education", "productivity", "business"]
+  }

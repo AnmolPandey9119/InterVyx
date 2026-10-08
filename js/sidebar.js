@@ -1,0 +1,120 @@
+/* ════════════════════════════════════════════════
+   Intervyx — Shared app sidebar
+   Same componentization pattern as footer.js / legal-nav.js: injects
+   markup, one file, every app page references it. Add
+   <script src="/js/sidebar.js" data-active="dashboard"></script>
+   right after <body> opens (before .app-container) — data-active tells
+   it which nav item to highlight on that page.
+
+   NOT used on interview.html — that page is intentionally full-screen/
+   distraction-free during an active interview, matching the rest of
+   the app's UX for that flow.
+
+   Items marked comingSoon: true are features whose backend/UI aren't
+   built yet (tracked in the Intervyx rebuild roadmap). They render
+   visibly, greyed out, with a "Soon" badge, and clicking one shows a
+   toast instead of a broken/dead link — never silently do nothing and
+   never link to a page that doesn't exist.
+
+   Analytics and Leaderboard shipped (routes/analytics.py,
+   routes/leaderboard.py + analytics.html / leaderboard.html) — no
+   longer comingSoon. Every language selectable inside a round (coding
+   editor, interview language, etc.) is still gated independently by
+   its own backend list and is untouched by this file.
+   ════════════════════════════════════════════════ */
+   (function () {
+    var NAV_ITEMS = [
+      { key: 'dashboard',   label: 'Dashboard',      icon: '\u25A4', href: '/dashboard' },
+      { key: 'start',       label: 'Start Interview',icon: '\u25B6', action: 'startInterview' },
+      { key: 'reports',     label: 'My Reports',     icon: '\u{1F4C4}', href: '/history' },
+      { key: 'questionbank',label: 'Question Bank',  icon: '\u{1F5C3}\uFE0F', href: '/questionbank' },
+      { key: 'analytics',   label: 'Analytics',      icon: '\u{1F4CA}', href: '/analytics' },
+      { key: 'aptitude',    label: 'Aptitude Test',  icon: '\u{1F9EE}', href: '/aptitude' },
+      { key: 'coding',      label: 'Coding Round',   icon: '\u{1F4BB}', href: '/coding' },
+      { key: 'leaderboard', label: 'Leaderboard',    icon: '\u{1F3C6}', href: '/leaderboard' },
+    ];
+  
+    var scriptTag = document.currentScript;
+    var activeKey = scriptTag.getAttribute('data-active') || '';
+  
+    function showComingSoonToast(label) {
+      var existing = document.getElementById('sidebarToast');
+      if (existing) existing.remove();
+  
+      var toast = document.createElement('div');
+      toast.id = 'sidebarToast';
+      toast.className = 'sidebar-toast';
+      toast.textContent = label + ' is coming soon.';
+      document.body.appendChild(toast);
+  
+      requestAnimationFrame(function () { toast.classList.add('show'); });
+      setTimeout(function () {
+        toast.classList.remove('show');
+        setTimeout(function () { toast.remove(); }, 250);
+      }, 2200);
+    }
+  
+    function handleNavClick(item, evt) {
+      if (item.comingSoon) {
+        evt.preventDefault();
+        showComingSoonToast(item.label);
+        return;
+      }
+      if (item.action === 'startInterview') {
+        evt.preventDefault();
+        if (typeof window.handleNewInterviewClick === 'function') {
+          window.handleNewInterviewClick();
+        } else {
+          window.location.href = '/dashboard';
+        }
+      }
+    }
+  
+    var aside = document.createElement('aside');
+    aside.className = 'app-sidebar';
+  
+    var brand = document.createElement('div');
+    brand.className = 'app-sidebar-brand';
+    brand.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">' +
+      '<a href="/" class="app-sidebar-logo"><img src="assets/logo-mark.png" alt="" width="34" height="34" style="width:34px;height:34px;border-radius:9px;vertical-align:middle;margin-right:0.55rem;">Intervyx</a>' +
+      '<button type="button" id="sidebarThemeToggle" class="app-sidebar-theme-toggle" aria-label="Toggle light mode" title="Toggle light mode">' +
+      '<span class="theme-toggle-icon theme-toggle-icon--sun">\u2600\uFE0F</span>' +
+      '<span class="theme-toggle-icon theme-toggle-icon--moon">\u{1F319}</span>' +
+      '</button></div>';
+    aside.appendChild(brand);
+
+    var themeBtn = brand.querySelector('#sidebarThemeToggle');
+    themeBtn.addEventListener('click', function () {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        try { localStorage.setItem('hv-theme', 'light'); } catch (e) {}
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('hv-theme', 'dark'); } catch (e) {}
+      }
+    });
+  
+    var nav = document.createElement('nav');
+    nav.className = 'app-sidebar-nav';
+  
+    NAV_ITEMS.forEach(function (item) {
+      var el = document.createElement('a');
+      el.href = item.href || '#';
+      el.className = 'app-sidebar-link' +
+        (item.key === activeKey ? ' active' : '') +
+        (item.comingSoon ? ' coming-soon' : '');
+      el.innerHTML =
+        '<span class="app-sidebar-icon">' + item.icon + '</span>' +
+        '<span class="app-sidebar-text">' + item.label + '</span>' +
+        (item.comingSoon ? '<span class="app-sidebar-badge">Soon</span>' : '');
+      el.addEventListener('click', function (evt) { handleNavClick(item, evt); });
+      nav.appendChild(el);
+    });
+  
+    aside.appendChild(nav);
+  
+    scriptTag.insertAdjacentElement('afterend', aside);
+    document.body.classList.add('has-app-sidebar');
+  })();

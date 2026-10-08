@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Interview Questions & Prep Guide for Freshers in India (2026) | Intervyx</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png">
+  <meta name="description" content="How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and common questions from campus placements, with what interviewers actually check for.">
+  <meta name="keywords" content="technical interview questions for freshers, technical interview preparation India, CS fundamentals interview questions, DSA interview questions freshers, campus placement technical round, IT interview preparation">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Anmol Pandey">
+  <link rel="canonical" href="https://intervyx.vercel.app/blog/technical-interview-questions-freshers-india">
+  <meta name="theme-color" content="#0B2A5B">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
+
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://intervyx.vercel.app/blog/technical-interview-questions-freshers-india">
+  <meta property="og:site_name" content="Intervyx">
+  <meta property="og:title" content="Technical Interview Questions & Prep Guide for Freshers in India (2026)">
+  <meta property="og:description" content="How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and common questions from campus placements.">
+  <meta property="og:image" content="https://intervyx.vercel.app/assets/og-image.jpg">
+  <meta property="og:locale" content="en_IN">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Technical Interview Questions & Prep Guide for Freshers in India">
+  <meta name="twitter:description" content="How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and more.">
+  <meta name="twitter:image" content="https://intervyx.vercel.app/assets/og-image.jpg">
+
+  <!-- Article structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Technical Interview Questions & Prep Guide for Freshers in India",
+    "description": "How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and common questions from campus placements.",
+    "image": "https://intervyx.vercel.app/assets/og-image.jpg",
+    "author": { "@type": "Person", "name": "Anmol Pandey" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Intervyx",
+      "logo": { "@type": "ImageObject", "url": "https://intervyx.vercel.app/assets/apple-touch-icon.png" }
+    },
+    "datePublished": "2026-08-10",
+    "dateModified": "2026-08-10",
+    "mainEntityOfPage": "https://intervyx.vercel.app/blog/technical-interview-questions-freshers-india",
+    "inLanguage": "en-IN"
+  }
+  </script>
+
+  <!-- Breadcrumb structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://intervyx.vercel.app/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://intervyx.vercel.app/blog" },
+      { "@type": "ListItem", "position": 3, "name": "Technical Interview Questions for Freshers", "item": "https://intervyx.vercel.app/blog/technical-interview-questions-freshers-india" }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
+
+  <style>
+    :root {
+      --hv-navy: #0B2A5B;
+      --hv-terracotta: #1B6FC9;
+      --hv-terracotta-dark: #14417A;
+      --hv-cream: #FFFDF9;
+      --hv-charcoal: #1F2528;
+      --hv-stone: #756F69;
+      --hv-ink: var(--hv-navy);
+      --hv-body: var(--hv-charcoal);
+      --hv-body-muted: var(--hv-stone);
+      --hv-mesh-bg: #FCF1E4;
+      --hv-glass-strong: rgba(255,253,249,0.82);
+      --hv-glass-border: rgba(255,255,255,0.65);
+      --hv-card-bg: rgba(11,42,91,0.03);
+      --hv-card-border: rgba(11,42,91,0.1);
+      --hv-highlight: var(--hv-terracotta-dark);
+    }
+    :root[data-theme="dark"] {
+      --hv-ink: var(--hv-cream);
+      --hv-body: #D9D2C6;
+      --hv-body-muted: #9C9488;
+      --hv-mesh-bg: #07080f;
+      --hv-glass-strong: rgba(7,8,15,0.85);
+      --hv-glass-border: rgba(255,255,255,0.06);
+      --hv-card-bg: rgba(255,255,255,0.02);
+      --hv-card-border: rgba(255,255,255,0.08);
+      --hv-highlight: #c7c9ff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--hv-mesh-bg);
+      color: var(--hv-ink);
+      line-height: 1.7;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--hv-glass-strong);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--hv-glass-border);
+    }
+    .logo-text {
+      font-size: 1.25rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--hv-terracotta), var(--hv-navy));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-decoration: none;
+    }
+    nav a.back { color: var(--hv-body-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    nav a.back:hover { color: var(--hv-ink); }
+    .nav-theme-toggle {
+      width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--hv-card-border);
+      background: var(--hv-card-bg); cursor: pointer; margin-left: 0.75rem;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;
+      transition: transform 0.2s ease;
+    }
+    .nav-theme-toggle:hover { transform: scale(1.08); }
+
+    main { max-width: 760px; margin: 0 auto; padding: 8rem 2rem 6rem; }
+
+    .breadcrumb { font-size: 0.85rem; color: var(--hv-body-muted); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: var(--hv-body-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--hv-ink); }
+
+    h1 { font-family: 'Fraunces', serif;
+      font-size: clamp(1.9rem, 5vw, 2.5rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.9rem;
+      color: var(--hv-ink);
+    }
+    .meta { color: var(--hv-body-muted); font-size: 0.85rem; margin-bottom: 2.5rem; }
+    .intro { color: var(--hv-body); font-size: 1.05rem; margin-bottom: 2.5rem; }
+
+    h2 { font-family: 'Fraunces', serif;
+      font-size: 1.4rem; font-weight: 800; margin: 2.5rem 0 1rem;
+      color: var(--hv-ink);
+    }
+    .q-block { border: 1px solid var(--hv-card-border); border-radius: 14px; background: var(--hv-card-bg); padding: 1.4rem 1.6rem; margin-bottom: 1rem; }
+    .q-block .q { font-weight: 700; color: var(--hv-highlight); margin-bottom: 0.5rem; font-size: 1rem; }
+    .q-block .a { color: var(--hv-body); font-size: 0.95rem; margin-bottom: 0.5rem; }
+    .q-block .why { color: var(--hv-body-muted); font-size: 0.85rem; font-style: italic; }
+
+    .inline-cta {
+      margin: 3rem 0;
+      text-align: center;
+      padding: 2.25rem 1.5rem;
+      border-radius: 20px;
+      background: rgba(27,111,201,0.08);
+      border: 1px solid rgba(27,111,201,0.25);
+    }
+    .inline-cta h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.6rem; color: var(--hv-ink); }
+    .inline-cta p { color: var(--hv-body-muted); font-size: 0.9rem; margin-bottom: 1.4rem; }
+    .btn-primary {
+      padding: 0.85rem 2rem;
+      background: linear-gradient(135deg, #1B6FC9, #F28A4B, #0B2A5B);
+      border: none; border-radius: 14px;
+      color: white; font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 8px 30px rgba(27,111,201,0.4);
+      text-decoration: none; display: inline-block;
+    }
+
+    @media (max-width: 640px) {
+      main { padding: 7rem 1.25rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="logo-text">Intervyx</a>
+    <div style="display:flex;align-items:center;">
+      <a href="/" class="back">← Back to Home</a>
+      <button type="button" class="nav-theme-toggle" id="blogThemeToggle" aria-label="Toggle light mode" title="Toggle light mode">🌙</button>
+    </div>
+  </nav>
+  <script>
+    (function () {
+      var btn = document.getElementById('blogThemeToggle');
+      var setIcon = function () { btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19'; };
+      setIcon();
+      btn.addEventListener('click', function () {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) { document.documentElement.removeAttribute('data-theme'); try { localStorage.setItem('hv-theme', 'light'); } catch (e) {} }
+        else { document.documentElement.setAttribute('data-theme', 'dark'); try { localStorage.setItem('hv-theme', 'dark'); } catch (e) {} }
+        setIcon();
+      });
+    })();
+  </script>
+
+  <main>
+    <div class="breadcrumb"><a href="/">Home</a> / <a href="/blog">Blog</a> / Technical Interview Questions</div>
+
+    <h1>Technical Interview Questions & Prep Guide for Freshers in India</h1>
+    <div class="meta">Updated 10 August 2026 · 7 min read</div>
+
+    <p class="intro">
+      The technical round is where most freshers lose confidence — not because they don't know the material, but because explaining it out loud, under a bit of pressure, is a different skill from solving it silently on paper. Here's what actually gets asked, what interviewers are checking for, and how to prepare without drowning in every topic at once.
+    </p>
+
+    <h2>1. Core CS fundamentals</h2>
+
+    <div class="q-block">
+      <div class="q">Q: Explain the difference between an array and a linked list.</div>
+      <div class="a">A: Cover memory allocation (contiguous vs scattered), access time (O(1) vs O(n)), and insertion/deletion cost. Give one real scenario where you'd pick each.</div>
+      <div class="why">Why it's asked: it's a quick check of whether you understand trade-offs, not just definitions.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: What is the time complexity of your solution, and can it be improved?</div>
+      <div class="a">A: State Big-O confidently, then think out loud about a faster approach even if you don't fully solve it — interviewers often care more about the reasoning path than a perfect answer.</div>
+      <div class="why">Why it's asked: tests whether you think about efficiency, not just correctness.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: Explain OOP concepts with an example from a project you built.</div>
+      <div class="a">A: Don't just define encapsulation/inheritance/polymorphism — tie each one to a real class or module from your own project so it's clear you've actually used them, not memorized definitions.</div>
+      <div class="why">Why it's asked: textbook definitions without application are an easy tell that you haven't built anything real.</div>
+    </div>
+
+    <h2>2. Your projects and resume</h2>
+
+    <div class="q-block">
+      <div class="q">Q: Walk me through this project on your resume.</div>
+      <div class="a">A: Structure it as: problem → your specific contribution → one technical decision you made and why → outcome/result. Avoid team-speak like "we built" when describing your own part.</div>
+      <div class="why">Why it's asked: this is usually the single most-asked technical question — it reveals whether you actually understand what you built or just followed a tutorial.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: Why did you choose this tech stack / library?</div>
+      <div class="a">A: Give a real reason — familiarity, a specific feature you needed, team constraint — rather than "it's popular." It's fine to admit you'd choose differently now with more experience.</div>
+      <div class="why">Why it's asked: checks if choices were deliberate or copy-pasted from a tutorial.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: What was the hardest bug you had to fix in this project?</div>
+      <div class="a">A: Pick a real one, explain how you debugged it (logs, breakpoints, isolating the issue) step by step, not just the final fix.</div>
+      <div class="why">Why it's asked: debugging process reveals more about your actual skill level than the final working code does.</div>
+    </div>
+
+    <h2>3. Data structures & algorithms (DSA)</h2>
+
+    <div class="q-block">
+      <div class="q">Q: Solve a basic array/string problem on the spot (e.g. reverse a string, find duplicates).</div>
+      <div class="a">A: Talk through your approach before coding — clarify constraints, mention edge cases (empty input, duplicates, single element) out loud, then code. Silence while typing makes interviewers nervous.</div>
+      <div class="why">Why it's asked: communicating your thought process is often weighted as heavily as getting the right answer.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: What data structure would you use for [scenario], and why?</div>
+      <div class="a">A: Practice matching common scenarios to structures — LRU cache → hashmap + doubly linked list, browser history → stack, task scheduling → queue/priority queue.</div>
+      <div class="why">Why it's asked: real engineering is choosing the right tool, not just knowing every tool exists.</div>
+    </div>
+
+    <h2>4. System basics & CS theory</h2>
+
+    <div class="q-block">
+      <div class="q">Q: What happens when you type a URL into a browser and hit enter?</div>
+      <div class="a">A: DNS lookup → TCP/TLS handshake → HTTP request → server processing → response rendering. You don't need deep networking expertise as a fresher — a clear high-level flow is enough.</div>
+      <div class="why">Why it's asked: a classic check of whether you understand the systems your code runs on top of.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: Explain normalization in databases, or the difference between SQL and NoSQL.</div>
+      <div class="a">A: Keep it practical — normalization reduces data redundancy; SQL suits structured, relational data with strict schemas, NoSQL suits flexible/unstructured data at scale. One example of each you've used helps.</div>
+      <div class="why">Why it's asked: most fresher roles touch a database eventually — this checks baseline readiness.</div>
+    </div>
+
+    <div class="inline-cta">
+      <h3>Practice explaining your answers out loud</h3>
+      <p>Knowing the concept and explaining it clearly under pressure are different skills. Intervyx's AI interviewer Arjun asks technical questions based on your actual resume and projects, and gives you a detailed feedback report after each session.</p>
+      <a href="/auth" class="btn-primary">Try 3 Free Interviews →</a>
+    </div>
+
+    <h2>A quick note on preparation</h2>
+    <p style="color:var(--hv-body);font-size:0.95rem;margin-bottom:1rem;">
+      You don't need to master every DSA topic or every framework before your interview. Go deep on the 2-3 projects on your resume — you should be able to defend every line of decision-making in them — and keep your fundamentals sharp enough to reason through a new problem out loud, even if you don't land on the perfect answer immediately.
+    </p>
+
+    <p style="color:var(--hv-body);font-size:0.95rem;margin-top:1.5rem;">
+      Looking for the HR round instead? Read our
+      <a href="/blog/common-hr-interview-questions-freshers-india" style="color:var(--hv-ink);text-decoration:underline;">25 Common HR Interview Questions for Freshers</a>,
+      or if you're preparing for a government exam interview, see our
+      <a href="/blog/upsc-ssc-interview-preparation-guide" style="color:var(--hv-ink);text-decoration:underline;">UPSC &amp; SSC Personality Test Preparation Guide</a>.
+    </p>
+
+  </main>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/assistant-widget.js"></script>
+  <script src="../js/footer.js"></script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — Interview Prep Guides | Intervyx</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png">
+  <meta name="description" content="Practical guides for HR interviews, technical rounds, and UPSC/SSC personality tests — from the team building Intervyx.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Anmol Pandey">
+  <link rel="canonical" href="https://intervyx.vercel.app/blog">
+  <meta name="theme-color" content="#0B2A5B">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://intervyx.vercel.app/blog">
+  <meta property="og:site_name" content="Intervyx">
+  <meta property="og:title" content="Blog — Interview Prep Guides | Intervyx">
+  <meta property="og:description" content="Practical guides for HR interviews, technical rounds, and UPSC/SSC personality tests.">
+  <meta property="og:image" content="https://intervyx.vercel.app/assets/og-image.jpg">
+  <meta property="og:locale" content="en_IN">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://intervyx.vercel.app/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://intervyx.vercel.app/blog" }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
+
+  <style>
+    :root {
+      --hv-navy: #0B2A5B;
+      --hv-terracotta: #1B6FC9;
+      --hv-terracotta-dark: #14417A;
+      --hv-cream: #FFFDF9;
+      --hv-charcoal: #1F2528;
+      --hv-stone: #756F69;
+      --hv-ink: var(--hv-navy);
+      --hv-body: var(--hv-charcoal);
+      --hv-body-muted: var(--hv-stone);
+      --hv-mesh-bg: #FCF1E4;
+      --hv-glass-strong: rgba(255,253,249,0.82);
+      --hv-glass-border: rgba(255,255,255,0.65);
+      --hv-card-bg: linear-gradient(180deg, rgba(11,42,91,0.035), rgba(11,42,91,0.012));
+      --hv-card-border: rgba(11,42,91,0.1);
+      --hv-card-bg-hover: linear-gradient(180deg, rgba(11,42,91,0.06), rgba(11,42,91,0.02));
+    }
+    :root[data-theme="dark"] {
+      --hv-ink: var(--hv-cream);
+      --hv-body: #D9D2C6;
+      --hv-body-muted: #9C9488;
+      --hv-mesh-bg: #07080f;
+      --hv-glass-strong: rgba(7,8,15,0.85);
+      --hv-glass-border: rgba(255,255,255,0.06);
+      --hv-card-bg: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+      --hv-card-border: rgba(255,255,255,0.09);
+      --hv-card-bg-hover: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--hv-mesh-bg);
+      color: var(--hv-ink);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--hv-glass-strong);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--hv-glass-border);
+    }
+    .logo-text {
+      font-size: 1.25rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--hv-terracotta), var(--hv-navy));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-decoration: none;
+    }
+    nav a.back { color: var(--hv-body-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    nav a.back:hover { color: var(--hv-ink); }
+    .nav-theme-toggle {
+      width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--hv-card-border);
+      background: var(--hv-card-bg); cursor: pointer; margin-left: 0.75rem;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;
+      transition: transform 0.2s ease;
+    }
+    .nav-theme-toggle:hover { transform: scale(1.08); }
+
+    main { max-width: 760px; margin: 0 auto; padding: 8rem 2rem 6rem; }
+    h1 { font-family: 'Fraunces', serif; font-size: clamp(2rem, 5vw, 2.85rem); font-weight: 900; letter-spacing: -0.025em; margin-bottom: 0.6rem; color: var(--hv-ink); }
+    .subtitle { color: var(--hv-body-muted); font-size: 1.05rem; margin-bottom: 3rem; max-width: 560px; }
+
+    .post-list { display: flex; flex-direction: column; gap: 1.1rem; }
+    .post-card {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--hv-card-bg); border: 1px solid var(--hv-card-border); border-radius: 18px;
+      padding: 1.75rem 2rem;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
+    }
+    .post-card:hover { border-color: rgba(27,111,201,0.5); background: var(--hv-card-bg-hover); transform: translateY(-3px); box-shadow: 0 16px 36px rgba(11,42,91,0.14); }
+    .post-meta { font-size: 0.8rem; color: var(--hv-terracotta-dark); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+    .post-title { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--hv-ink); }
+    .post-desc { color: var(--hv-body-muted); font-size: 0.95rem; }
+
+    @media (max-width: 640px) { main { padding: 7rem 1.25rem 4rem; } .post-card { padding: 1.4rem 1.5rem; } }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="logo-text">Intervyx</a>
+    <div style="display:flex;align-items:center;">
+      <a href="/" class="back">← Back to Home</a>
+      <button type="button" class="nav-theme-toggle" id="blogThemeToggle" aria-label="Toggle light mode" title="Toggle light mode">🌙</button>
+    </div>
+  </nav>
+  <script>
+    (function () {
+      var btn = document.getElementById('blogThemeToggle');
+      var setIcon = function () { btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'; };
+      setIcon();
+      btn.addEventListener('click', function () {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) { document.documentElement.removeAttribute('data-theme'); try { localStorage.setItem('hv-theme', 'light'); } catch (e) {} }
+        else { document.documentElement.setAttribute('data-theme', 'dark'); try { localStorage.setItem('hv-theme', 'dark'); } catch (e) {} }
+        setIcon();
+      });
+    })();
+  </script>
+
+  <main>
+    <h1>The Intervyx Blog</h1>
+    <p class="subtitle">Practical, no-fluff guides for interview prep — HR rounds, technical rounds, and government exam interviews.</p>
+
+    <div class="post-list">
+      <a class="post-card" href="/blog/common-hr-interview-questions-freshers-india">
+        <div class="post-meta">HR Round · 8 min read</div>
+        <div class="post-title">25 Common HR Interview Questions & Answers for Freshers in India</div>
+        <div class="post-desc">The questions that come up again and again in HR rounds, what's really being tested behind each one, and how to structure a strong answer.</div>
+      </a>
+
+      <a class="post-card" href="/blog/technical-interview-questions-freshers-india">
+        <div class="post-meta">Technical Round</div>
+        <div class="post-title">Technical Interview Questions & Prep Guide for Freshers</div>
+        <div class="post-desc">A practical walkthrough of what technical interviewers actually probe for, and how to prepare beyond memorizing answers.</div>
+      </a>
+
+      <a class="post-card" href="/blog/upsc-ssc-interview-preparation-guide">
+        <div class="post-meta">Government Exams · 7 min read</div>
+        <div class="post-title">UPSC & SSC Personality Test (Interview) Preparation Guide</div>
+        <div class="post-desc">What the board is actually evaluating in the personality test round, and how to prepare your DAF-based answers under real pressure.</div>
+      </a>
+    </div>
+  </main>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/assistant-widget.js"></script>
+  <script src="../js/footer.js"></script>
+</body>
+</html>

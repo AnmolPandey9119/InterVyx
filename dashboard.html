@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intervyx — Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <meta name="robots" content="noindex, follow">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .dashboard-header { margin-bottom: 2.5rem; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .dashboard-welcome { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #1B6FC9 0%, #F28A4B 50%, #0B2A5B 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .dashboard-sub { color: var(--hv-text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+    .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-left: auto; }
+    .start-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, #1B6FC9, #0B2A5B); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(27,111,201,0.4); }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(27,111,201,0.6); }
+    .start-btn.secondary-header-btn { background: var(--hv-surface-2); border: 1px solid var(--hv-hairline); color: var(--hv-text-strong); box-shadow: none; }
+    .start-btn.secondary-header-btn:hover { background: var(--hv-surface-3); box-shadow: none; }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .stat-card { background: var(--hv-glass-bg); backdrop-filter: blur(20px); padding: 1.75rem; border-radius: 18px; border: 1px solid rgba(27,111,201,0.2); box-shadow: var(--hv-shadow-2); transition: transform 0.2s ease; }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
+    .stat-value { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .stat-label { font-size: 0.85rem; color: var(--hv-text-muted); font-weight: 600; }
+    .stat-purple { color: #F28A4B; }
+    .stat-green { color: #4C7A5E; }
+    .stat-pink { color: #0B2A5B; }
+    .stat-yellow { color: #f59e0b; }
+
+    /* Free Trial Banner */
+    .free-trial-banner { background: linear-gradient(135deg, rgba(27,111,201,0.15), rgba(11,42,91,0.15)); border: 1px solid rgba(27,111,201,0.3); border-radius: 18px; padding: 1.5rem 2rem; margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .free-trial-text { font-weight: 700; color: var(--hv-text-muted); font-size: 1rem; }
+    .free-trial-sub { font-size: 0.85rem; color: var(--hv-text-muted); margin-top: 0.25rem; }
+    .free-trial-badges { display: flex; gap: 0.5rem; }
+    .trial-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; }
+    .trial-dot.used { background: rgba(27,111,201,0.3); border: 2px solid #1B6FC9; }
+    .trial-dot.available { background: var(--hv-surface-1); border: 2px dashed var(--hv-hairline); }
+
+    /* PREMIUM DASHBOARD BANNER — front-and-center on the main dashboard,
+       no need to open the account panel to see it. Shown only while a
+       subscription is active. */
+    .premium-dash-banner { background: linear-gradient(135deg, rgba(250,204,21,0.20), rgba(217,119,6,0.12)); border: 1px solid rgba(250,204,21,0.5); border-radius: 18px; padding: 1.5rem 2rem; margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: 0 0 24px rgba(250,204,21,0.12); }
+    .premium-dash-left { display: flex; align-items: center; gap: 1rem; }
+    .premium-dash-crown { font-size: 2rem; filter: drop-shadow(0 0 6px rgba(250,204,21,0.6)); }
+    .premium-dash-title { font-weight: 800; color: #fde68a; font-size: 1.1rem; }
+    .premium-dash-sub { font-size: 0.85rem; color: var(--hv-text-muted); margin-top: 0.25rem; }
+    .premium-dash-days { background: rgba(250,204,21,0.2); border: 1px solid rgba(250,204,21,0.45); color: #fde68a; font-weight: 800; font-size: 0.9rem; padding: 0.55rem 1.1rem; border-radius: 20px; white-space: nowrap; }
+
+    /* Recent Interviews */
+    .section-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--hv-text-muted); }
+    .interviews-list { display: flex; flex-direction: column; gap: 1rem; }
+    .interview-card { background: var(--hv-glass-bg); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(27,111,201,0.15); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; transition: all 0.2s ease; cursor: pointer; }
+    .interview-card:hover { border-color: rgba(27,111,201,0.4); background: var(--hv-glass-bg-hover); transform: translateX(4px); }
+    .interview-role { font-weight: 700; font-size: 1rem; color: var(--hv-text-strong); margin-bottom: 0.35rem; }
+    .interview-date { font-size: 0.82rem; color: var(--hv-text-muted); }
+    .interview-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .interview-score { font-size: 1.4rem; font-weight: 800; }
+    .status-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+    .status-completed { background: rgba(76,122,94,0.15); color: #4C7A5E; border: 1px solid rgba(76,122,94,0.3); }
+    .status-in_progress { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .status-cheating_terminated { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .status-failed { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
+    .sector-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+    .sector-government { background: rgba(27,111,201,0.15); color: #F28A4B; border: 1px solid rgba(27,111,201,0.3); }
+    .sector-private { background: var(--hv-surface-2); color: var(--hv-text-muted); border: 1px solid var(--hv-hairline); }
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--hv-text-muted); }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .loading-shimmer { background: linear-gradient(90deg, var(--hv-surface-1) 25%, var(--hv-surface-3) 50%, var(--hv-surface-1) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* Light-theme contrast fixes — the accent colours above (pale gold,
+       amber, salmon, light red/grey) were picked for the dark canvas and
+       wash out on the cream light canvas. Dark theme is untouched. */
+    :root:not([data-theme="dark"]) .premium-dash-title,
+    :root:not([data-theme="dark"]) .premium-dash-days { color: #92400e; }
+    :root:not([data-theme="dark"]) .premium-dash-days { background: rgba(217,119,6,0.14); border-color: rgba(180,83,9,0.4); }
+    :root:not([data-theme="dark"]) .stat-purple { color: #1B6FC9; }
+    :root:not([data-theme="dark"]) .stat-yellow { color: #b45309; }
+    :root:not([data-theme="dark"]) .status-in_progress { color: #b45309; }
+    :root:not([data-theme="dark"]) .status-cheating_terminated { color: #dc2626; }
+    :root:not([data-theme="dark"]) .status-failed { color: #475569; }
+    :root:not([data-theme="dark"]) .sector-government { color: #14417A; }
+
+    /* ════════════════════════════════════════════
+       PROFILE AVATAR + GOOGLE-STYLE MINI DROPDOWN
+       ════════════════════════════════════════════ */
+    .profile-widget { position: relative; }
+    .profile-trigger { background: none; border: none; cursor: pointer; padding: 0; border-radius: 50%; line-height: 0; }
+    .profile-trigger-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #1B6FC9, #F28A4B); border: 2px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.95rem; transition: box-shadow 0.2s ease; }
+    .profile-trigger:hover .profile-trigger-avatar { box-shadow: 0 0 0 3px rgba(27,111,201,0.35); }
+    /* Premium/golden state — applied once a subscription is active */
+    .avatar-wrap { position: relative; display: inline-block; line-height: 0; }
+    .profile-trigger-avatar.is-premium { border-color: #facc15; box-shadow: 0 0 0 3px rgba(250,204,21,0.5), 0 0 14px rgba(250,204,21,0.55); }
+    .avatar-crown-badge { position: absolute; bottom: -3px; right: -3px; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #facc15, #d97706); border: 2px solid #0d1024; display: none; align-items: center; justify-content: center; font-size: 0.6rem; }
+    .avatar-crown-badge.show { display: flex; }
+
+    .mini-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 290px; background: #161b38; border: 1px solid rgba(27,111,201,0.25); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); padding: 1.75rem 1.5rem 1.25rem; text-align: center; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.18s ease; z-index: 500; }
+    .mini-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .mini-dropdown-email { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.1rem; word-break: break-all; }
+    .mini-dropdown-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #1B6FC9, #F28A4B); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; margin: 0 auto 0.9rem; }
+    .mini-dropdown-avatar.is-premium { box-shadow: 0 0 0 3px #facc15, 0 0 16px rgba(250,204,21,0.6); }
+    .mini-dropdown-greeting { font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1.4rem; }
+    .manage-account-btn { width: 100%; padding: 0.7rem 1rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(27,111,201,0.3); border-radius: 999px; color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: all 0.2s ease; }
+    .manage-account-btn:hover { background: rgba(27,111,201,0.22); border-color: #1B6FC9; }
+    .mini-dropdown-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 1.1rem 0; }
+    .mini-dropdown-signout { width: 100%; padding: 0.6rem; background: none; border: none; color: #f87171; font-weight: 600; font-size: 0.85rem; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; transition: background 0.2s ease; }
+    .mini-dropdown-signout:hover { background: rgba(239,68,68,0.12); }
+
+    /* ════════════════════════════════════════════
+       BIG ACCOUNT-MANAGEMENT OVERLAY PANEL
+       ════════════════════════════════════════════ */
+    .account-overlay-backdrop { position: fixed; inset: 0; background: rgba(5,7,20,0.6); backdrop-filter: blur(2px); z-index: 600; opacity: 0; visibility: hidden; transition: opacity 0.25s ease; }
+    .account-overlay-backdrop.open { opacity: 1; visibility: visible; }
+
+    .account-big-panel { position: fixed; top: 6vh; left: 50%; width: min(920px, 92vw); max-height: 88vh; overflow-y: auto; background: #12162c; border: 1px solid rgba(27,111,201,0.25); border-radius: 24px; box-shadow: 0 30px 90px rgba(0,0,0,0.6); z-index: 601; padding: 2rem; opacity: 0; visibility: hidden; transform: translate(-50%, -12px); transition: all 0.25s ease; }
+    .account-big-panel.open { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .big-panel-close { position: absolute; top: 1.25rem; right: 1.25rem; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: white; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease; }
+    .big-panel-close:hover { background: rgba(255,255,255,0.14); }
+
+    .account-shell { display: flex; align-items: flex-start; gap: 2rem; }
+    .account-sidebar { width: 240px; flex-shrink: 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(27,111,201,0.15); border-radius: 18px; padding: 1.25rem 1rem; }
+    .sidebar-title { font-size: 1rem; font-weight: 800; padding: 0 0.5rem 1.1rem; background: linear-gradient(135deg, #1B6FC9 0%, #F28A4B 50%, #0B2A5B 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.35rem; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.7rem; width: 100%; text-align: left; padding: 0.8rem 0.9rem; border-radius: 12px; border: 1px solid transparent; background: transparent; color: rgba(255,255,255,0.65); font-family: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .sidebar-link .icon { font-size: 1.05rem; width: 1.4rem; text-align: center; flex-shrink: 0; }
+    .sidebar-link:hover { background: rgba(255,255,255,0.06); color: white; }
+    .sidebar-link.active { background: linear-gradient(135deg, rgba(27,111,201,0.25), rgba(11,42,91,0.15)); border-color: rgba(27,111,201,0.35); color: white; box-shadow: 0 4px 20px rgba(27,111,201,0.25); }
+    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0.6rem 0.5rem; }
+    .sidebar-link-logout { color: #f87171; }
+    .sidebar-link-logout:hover { background: rgba(239,68,68,0.12); color: #f87171; }
+    .account-main { flex: 1; min-width: 0; }
+
+    @media (max-width: 720px) {
+      .account-big-panel { top: 3vh; max-height: 94vh; padding: 1.5rem; }
+      .account-shell { flex-direction: column; }
+      .account-sidebar { width: 100%; }
+      .sidebar-nav { flex-direction: row; overflow-x: auto; gap: 0.5rem; }
+      .sidebar-link { flex-shrink: 0; white-space: nowrap; }
+      .sidebar-divider { display: none; }
+      .mini-dropdown { width: 260px; right: -0.5rem; }
+      .profile-card { padding: 2rem 1.25rem; }
+      .password-card { padding: 1.75rem 1.25rem; }
+      .dashboard-header-text { order: 1; flex: 1 1 auto; min-width: 0; }
+      .profile-widget { order: 2; margin-left: auto; }
+      .header-actions { order: 3; width: 100%; flex-direction: column; align-items: stretch; margin-left: 0; }
+      .start-btn { width: 100%; }
+
+      /* Recent Interviews cards — badges wrap onto their own row instead
+         of overflowing past the screen edge (was cut off on phones). */
+      .interview-card { padding: 1.1rem; gap: 0.75rem; }
+      .interview-meta { width: 100%; gap: 0.6rem; }
+      .status-badge, .sector-badge, .round-badge { font-size: 0.72rem; padding: 0.28rem 0.7rem; }
+    }
+
+    /* PERSONAL INFO */
+    .profile-card { max-width: 520px; margin: 1rem auto 0; text-align: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(27,111,201,0.2); border-radius: 24px; padding: 3rem 2.5rem; }
+    .profile-avatar-wrap { position: relative; width: 132px; height: 132px; margin: 0 auto 1.5rem; }
+    .profile-avatar-ring { width: 132px; height: 132px; border-radius: 50%; padding: 4px; background: conic-gradient(from 180deg, #ef4444, #f59e0b, #4C7A5E, #06b6d4, #1B6FC9, #0B2A5B, #ef4444); }
+    .profile-avatar-ring.is-premium { background: conic-gradient(from 180deg, #facc15, #fde68a, #f59e0b, #d97706, #facc15); }
+    .profile-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #1B6FC9, #F28A4B); display: flex; align-items: center; justify-content: center; font-size: 2.4rem; font-weight: 800; color: white; border: 3px solid #12162c; overflow: hidden; }
+    .profile-avatar-ring.has-photo { cursor: zoom-in; transition: transform 0.15s ease; }
+    .profile-avatar-ring.has-photo:hover { transform: scale(1.03); }
+    .profile-avatar-camera { position: absolute; bottom: 2px; right: 2px; width: 38px; height: 38px; border-radius: 50%; background: #1B6FC9; border: 3px solid #12162c; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; z-index: 2; }
+    .profile-avatar-camera:hover { background: #F28A4B; transform: scale(1.08); }
+
+    /* AVATAR PREVIEW LIGHTBOX */
+    .avatar-preview-overlay { display: none; position: fixed; inset: 0; background: rgba(6,8,20,0.85); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 2rem; }
+    .avatar-preview-overlay.open { display: flex; }
+    .avatar-preview-box { position: relative; display: flex; flex-direction: column; align-items: center; max-width: min(90vw, 480px); }
+    .avatar-preview-img { width: min(90vw, 420px); height: min(90vw, 420px); object-fit: cover; border-radius: 50%; border: 4px solid rgba(255,255,255,0.12); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .avatar-preview-close { position: absolute; top: -14px; right: -14px; width: 40px; height: 40px; border-radius: 50%; background: #12162c; border: 2px solid rgba(255,255,255,0.15); color: white; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; }
+    .avatar-preview-close:hover { background: #ef4444; border-color: #ef4444; transform: scale(1.08); }
+    .avatar-preview-hint { margin-top: 1.25rem; color: rgba(255,255,255,0.55); font-size: 0.9rem; }
+    .avatar-preview-remove-btn { margin-top: 0.75rem; background: none; border: none; color: #f87171; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; padding: 0.3rem 0.6rem; }
+    .avatar-preview-remove-btn:hover { text-decoration: underline; }
+    .profile-name { font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 0.35rem; }
+    .profile-email { font-size: 0.95rem; color: rgba(255,255,255,0.6); margin-bottom: 2rem; }
+    .profile-membership { background: linear-gradient(135deg, rgba(27,111,201,0.15), rgba(11,42,91,0.15)); border: 1px solid rgba(27,111,201,0.3); border-radius: 16px; padding: 1.5rem; }
+    .profile-membership-title { font-weight: 700; color: rgba(255,255,255,0.6); margin-bottom: 0.25rem; }
+    .profile-membership-sub { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 1.25rem; }
+    .profile-explore-btn { padding: 0.85rem 2rem; background: linear-gradient(135deg, #1B6FC9, #0B2A5B); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(27,111,201,0.4); }
+    .profile-explore-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(27,111,201,0.6); }
+
+    /* PAYMENT — Weekly / Monthly subscription plans */
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.5rem; max-width: 620px; margin-top: 1rem; }
+    .plan-card { background: rgba(255,255,255,0.04); border: 2px solid rgba(27,111,201,0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; transition: all 0.3s ease; display: flex; flex-direction: column; }
+    .plan-card:hover { transform: translateY(-4px); border-color: rgba(27,111,201,0.4); }
+    .plan-card.featured { border-color: #1B6FC9; background: linear-gradient(135deg, rgba(27,111,201,0.15), rgba(11,42,91,0.08)); }
+    .plan-badge { align-self: center; background: linear-gradient(135deg, #1B6FC9, #0B2A5B); color: white; font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.8rem; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .plan-badge-outline { align-self: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.8rem; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .plan-name { font-size: 1.15rem; font-weight: 800; color: white; margin-bottom: 0.5rem; }
+    .plan-price { font-size: 2rem; font-weight: 800; color: white; margin-bottom: 0.25rem; }
+    .plan-cycle { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 1.5rem; }
+    .plan-features { list-style: none; text-align: left; margin-bottom: 1.75rem; flex: 1; }
+    .plan-features li { padding: 0.5rem 0; font-size: 0.88rem; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 0.6rem; }
+    .plan-btn { padding: 0.85rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all 0.3s ease; border: 2px solid rgba(27,111,201,0.3); background: rgba(255,255,255,0.06); color: white; }
+    .plan-btn:hover { background: rgba(255,255,255,0.12); }
+    .plan-btn.primary { background: linear-gradient(135deg, #1B6FC9, #0B2A5B); border: none; box-shadow: 0 4px 20px rgba(27,111,201,0.4); }
+    .plan-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(27,111,201,0.6); }
+    .plans-footnote { max-width: 620px; font-size: 0.82rem; color: rgba(255,255,255,0.6); line-height: 1.6; margin-top: 1.5rem; }
+
+    /* ACTIVE PLAN banner — shown at the top of Payment & Subscription
+       page when the user currently has a live subscription. */
+    .active-plan-banner { max-width: 620px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: linear-gradient(135deg, rgba(250,204,21,0.16), rgba(217,119,6,0.10)); border: 1px solid rgba(250,204,21,0.4); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; }
+    .active-plan-left { display: flex; align-items: center; gap: 0.75rem; }
+    .active-plan-crown { font-size: 1.6rem; }
+    .active-plan-name { font-weight: 800; color: #fde68a; font-size: 1.05rem; }
+    .active-plan-sub { font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-top: 0.15rem; }
+    .active-plan-days { background: rgba(250,204,21,0.15); border: 1px solid rgba(250,204,21,0.35); color: #fde68a; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 20px; white-space: nowrap; }
+
+    /* GOLD membership badge — profile card, once a plan is active */
+    .profile-membership.is-active { background: linear-gradient(135deg, rgba(250,204,21,0.18), rgba(217,119,6,0.10)); border-color: rgba(250,204,21,0.4); }
+    .profile-membership-title.is-gold { color: #fde68a; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+
+    /* Small crown chip next to the profile name once a plan is active */
+    .profile-gold-chip { display: none; align-items: center; gap: 0.3rem; background: linear-gradient(135deg, #facc15, #d97706); color: #1a1200; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.65rem; border-radius: 20px; margin-left: 0.5rem; vertical-align: middle; }
+    .profile-gold-chip.show { display: inline-flex; }
+
+    /* PAYMENT HISTORY table */
+    .history-section-title { font-size: 1rem; font-weight: 700; color: white; margin: 2rem 0 1rem; }
+    .history-empty { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+    .history-table { width: 100%; max-width: 620px; border-collapse: collapse; }
+    .history-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.6); padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .history-table td { font-size: 0.85rem; color: rgba(255,255,255,0.6); padding: 0.7rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .history-table td.hv-amount { color: white; font-weight: 700; }
+    .history-status-pill { background: rgba(76,122,94,0.15); border: 1px solid rgba(76,122,94,0.35); color: #4ade80; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 20px; text-transform: capitalize; }
+
+    /* PASSWORD */
+    .password-card { max-width: 480px; background: rgba(255,255,255,0.04); border: 1px solid rgba(27,111,201,0.2); border-radius: 20px; padding: 2.5rem; margin-top: 1rem; }
+    .password-hint { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: -0.5rem; margin-bottom: 1.5rem; }
+
+    /* Toast */
+    .hv-toast { position: fixed; bottom: 5.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(26,31,58,0.95); border: 1px solid rgba(27,111,201,0.4); color: white; padding: 0.9rem 1.5rem; border-radius: 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 12px 35px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 999; }
+
+    /* LIMIT-EXCEEDED / PLAN-EXPIRED popup — shown the moment the user
+       clicks "+ New Interview" on the dashboard, before they fill out
+       the setup form. Mirrors the copy shown at the "Begin Interview"
+       step so the message is consistent everywhere. */
+    .limit-modal-backdrop { position: fixed; inset: 0; background: rgba(5,7,20,0.7); backdrop-filter: blur(3px); z-index: 800; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+    .limit-modal-backdrop.open { display: flex; }
+    .limit-modal { background: #12162c; border: 1px solid rgba(250,204,21,0.35); border-radius: 22px; box-shadow: 0 30px 90px rgba(0,0,0,0.6); max-width: 420px; width: 100%; padding: 2.25rem 2rem; text-align: center; }
+    .limit-modal-icon { font-size: 2.75rem; margin-bottom: 1rem; }
+    .limit-modal-title { font-size: 1.25rem; font-weight: 800; color: #fde68a; margin-bottom: 0.6rem; }
+    .limit-modal-sub { font-size: 0.9rem; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 1.75rem; }
+    .limit-modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .limit-modal-btn-primary { padding: 0.75rem 1.6rem; background: linear-gradient(135deg,#1B6FC9,#0B2A5B); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+    .limit-modal-btn-secondary { padding: 0.75rem 1.6rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: rgba(255,255,255,0.8); cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+    .hv-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .hv-toast.error { border-color: rgba(239,68,68,0.5); }
+
+    .hidden { display: none !important; }
+
+    /* PERSONAL INFO — editable name/email fields */
+    .profile-field { margin-bottom: 0.9rem; }
+    .profile-field-display { display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+    .field-edit-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); width: 28px; height: 28px; border-radius: 50%; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease; }
+    .field-edit-btn:hover { background: rgba(27,111,201,0.2); border-color: #1B6FC9; color: white; }
+    .profile-field-edit { display: flex; flex-direction: column; gap: 0.6rem; max-width: 340px; margin: 0 auto; }
+    .profile-field-edit input.form-input { text-align: center; }
+    .field-edit-actions { display: flex; gap: 0.6rem; }
+    .field-btn-save, .field-btn-cancel { flex: 1; padding: 0.6rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: all 0.2s ease; border: none; }
+    .field-btn-save { background: linear-gradient(135deg, #1B6FC9, #0B2A5B); color: white; }
+    .field-btn-save:hover { transform: translateY(-1px); }
+    .field-btn-save:disabled { opacity: 0.6; cursor: default; transform: none; }
+    .field-btn-cancel { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+    .field-btn-cancel:hover { background: rgba(255,255,255,0.1); }
+    .otp-sent-note { font-size: 0.82rem; color: rgba(255,255,255,0.6); text-align: center; }
+    .resend-link { background: none; border: none; color: #F28A4B; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; text-align: center; padding: 0.3rem; }
+    .resend-link:disabled { color: rgba(255,255,255,0.6); cursor: default; }
+    .resend-link:not(:disabled):hover { color: #F28A4B; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <script src="/js/sidebar.js" data-active="dashboard"></script>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <div class="dashboard-header">
+          <div class="dashboard-header-text">
+            <div class="dashboard-welcome"><span id="welcomeText">Welcome back!</span></div>
+            <div class="dashboard-sub">Here's your interview progress</div>
+          </div>
+
+          <div class="header-actions">
+            <button class="start-btn secondary-header-btn" onclick="window.location.href='/history'">📋 History</button>
+            <button class="start-btn" onclick="handleNewInterviewClick()">+ New Interview</button>
+          </div>
+
+          <!-- Profile avatar + Google-style mini dropdown. On desktop this
+               sits inline at the far right, next to the action buttons
+               (original layout). On mobile, CSS `order` pulls it up next
+               to the greeting instead, so it never gets swept into the
+               action-buttons stack — see the max-width:720px rules below. -->
+          <div class="profile-widget" id="profileWidget">
+            <button class="profile-trigger" id="profileTrigger" onclick="toggleMiniDropdown()" aria-label="Account menu">
+              <div class="avatar-wrap">
+                <div class="profile-trigger-avatar" id="headerAvatar">?</div>
+                <span class="avatar-crown-badge" id="headerCrownBadge">👑</span>
+              </div>
+            </button>
+
+            <div class="mini-dropdown" id="miniDropdown">
+              <div class="mini-dropdown-email" id="miniEmail">—</div>
+              <div class="avatar-wrap">
+                <div class="mini-dropdown-avatar" id="miniAvatar">?</div>
+                <span class="avatar-crown-badge" id="miniCrownBadge">👑</span>
+              </div>
+              <div class="mini-dropdown-greeting" id="miniGreeting">Hi!</div>
+              <button class="manage-account-btn" onclick="openBigPanel()">Manage your Intervyx Account</button>
+              <div class="mini-dropdown-divider"></div>
+              <button class="mini-dropdown-signout" onclick="handleLogout()">🚪 Sign out</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PREMIUM banner — visible right on the dashboard, no need to
+             open the account panel. Shown only while subscription is active. -->
+        <div class="premium-dash-banner hidden" id="premiumDashBanner">
+          <div class="premium-dash-left">
+            <div class="premium-dash-crown">👑</div>
+            <div>
+              <div class="premium-dash-title" id="premiumDashTitle">Premium Member</div>
+              <div class="premium-dash-sub" id="premiumDashSub">Unlimited interviews unlocked</div>
+            </div>
+          </div>
+          <div class="premium-dash-days" id="premiumDashDays">—</div>
+        </div>
+
+        <!-- Free Trial Banner -->
+        <div class="free-trial-banner" id="freeTrialBanner" style="display:none">
+          <div>
+            <div class="free-trial-text" id="freeTrialText">You have free interviews remaining</div>
+            <div class="free-trial-sub">First 3 interviews are completely free — no payment needed</div>
+          </div>
+          <div class="free-trial-badges" id="freeTrialBadges"></div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+        </div>
+
+        <!-- Recent Interviews -->
+        <div class="section-title">Recent Interviews</div>
+        <div class="interviews-list" id="interviewsList">
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Free-trial-exceeded / plan-expired popup — triggered from the
+       "+ New Interview" button on the dashboard itself, before the user
+       ever reaches the interview setup form. -->
+  <div class="limit-modal-backdrop" id="limitModalBackdrop" onclick="if (event.target === this) closeLimitModal()">
+    <div class="limit-modal">
+      <div class="limit-modal-icon" id="limitModalIcon">🔒</div>
+      <div class="limit-modal-title" id="limitModalTitle">Free interviews used up</div>
+      <div class="limit-modal-sub" id="limitModalSub">You've used all 3 free interviews. Please purchase a plan to continue.</div>
+      <div class="limit-modal-actions">
+        <button class="limit-modal-btn-secondary" onclick="closeLimitModal()">Maybe later</button>
+        <button class="limit-modal-btn-primary" onclick="goToPlansFromLimitModal()">View Plans</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Big account-management overlay (opens on "Manage your Intervyx Account") -->
+  <div class="account-overlay-backdrop" id="accountBackdrop" onclick="closeBigPanel()"></div>
+  <div class="account-big-panel" id="accountBigPanel">
+    <button class="big-panel-close" onclick="closeBigPanel()" aria-label="Close">✕</button>
+
+    <div class="account-shell">
+      <aside class="account-sidebar">
+        <div class="sidebar-title">Intervyx Account</div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link" onclick="closeBigPanel()">
+            <span class="icon">🏠</span> Home
+          </button>
+          <button class="sidebar-link active" data-page="personalInfoPage" onclick="switchTab('personalInfoPage', this)">
+            <span class="icon">👤</span> Personal Info
+          </button>
+          <button class="sidebar-link" data-page="paymentPage" onclick="switchTab('paymentPage', this)">
+            <span class="icon">💳</span> Payment and Subscription
+          </button>
+          <button class="sidebar-link" data-page="passwordPage" onclick="switchTab('passwordPage', this)">
+            <span class="icon">🔒</span> Password
+          </button>
+          <div class="sidebar-divider"></div>
+          <button class="sidebar-link sidebar-link-logout" onclick="handleLogout()">
+            <span class="icon">🚪</span> Logout
+          </button>
+        </nav>
+      </aside>
+
+      <div class="account-main">
+        <div class="page active" id="personalInfoPage">
+          <div class="section-title">Personal Info</div>
+          <div class="profile-card">
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar-ring" id="profileAvatarRing" onclick="openAvatarPreview()">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+              </div>
+              <div class="profile-avatar-camera" onclick="event.stopPropagation(); triggerAvatarUpload()" title="Change photo">📷</div>
+              <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarFile(event)">
+            </div>
+
+            <!-- Avatar preview lightbox -->
+            <div class="avatar-preview-overlay" id="avatarPreviewOverlay" onclick="if (event.target === this) closeAvatarPreview()">
+              <div class="avatar-preview-box">
+                <button class="avatar-preview-close" onclick="closeAvatarPreview()" title="Close">✕</button>
+                <img class="avatar-preview-img" id="avatarPreviewImg" alt="Profile photo preview">
+                <div class="avatar-preview-hint">Click the camera icon to change your photo</div>
+                <button class="avatar-preview-remove-btn" onclick="removeAvatarPhoto()">🗑️ Remove photo</button>
+              </div>
+            </div>
+
+            <!-- Name (editable) -->
+            <div class="profile-field">
+              <div class="profile-field-display" id="nameDisplay">
+                <span class="profile-name" id="profileName" style="margin-bottom:0">—</span>
+                <span class="profile-gold-chip" id="profileGoldChip">👑 Premium</span>
+                <button class="field-edit-btn" onclick="startEditName()" title="Edit name">✏️</button>
+              </div>
+              <div class="profile-field-edit hidden" id="nameEditForm">
+                <input type="text" class="form-input" id="nameInput" maxlength="100" placeholder="Your full name">
+                <div class="field-edit-actions">
+                  <button class="field-btn-save" id="nameSaveBtn" onclick="saveNameEdit()">Save</button>
+                  <button class="field-btn-cancel" onclick="cancelNameEdit()">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email (editable, OTP-verified) -->
+            <div class="profile-field" style="margin-bottom:2rem">
+              <div class="profile-field-display" id="emailDisplay">
+                <span class="profile-email" id="profileEmail" style="margin-bottom:0">—</span>
+                <button class="field-edit-btn" onclick="startEditEmail()" title="Change email">✏️</button>
+              </div>
+
+              <div class="profile-field-edit hidden" id="emailEditForm">
+                <input type="email" class="form-input" id="newEmailInput" placeholder="Enter new email address">
+                <div class="field-edit-actions">
+                  <button class="field-btn-save" id="emailSendBtn" onclick="sendEmailOtp()">Send Code</button>
+                  <button class="field-btn-cancel" onclick="cancelEmailEdit()">Cancel</button>
+                </div>
+              </div>
+
+              <div class="profile-field-edit hidden" id="emailOtpForm">
+                <div class="otp-sent-note" id="otpSentNote">Code sent to —</div>
+                <input type="text" class="form-input" id="emailOtpInput" placeholder="6-digit code" maxlength="6" inputmode="numeric">
+                <div class="field-edit-actions">
+                  <button class="field-btn-save" id="emailVerifyBtn" onclick="verifyEmailOtp()">Verify &amp; Update</button>
+                  <button class="field-btn-cancel" onclick="cancelEmailEdit()">Cancel</button>
+                </div>
+                <button class="resend-link" id="resendOtpBtn" onclick="sendEmailOtp(true)">Resend code</button>
+              </div>
+            </div>
+
+            <div class="profile-membership" id="profileMembershipCard">
+              <div class="profile-membership-title" id="profileMembershipTitle">Get a membership plan</div>
+              <div class="profile-membership-sub" id="profileMembershipSub">Unlock access to more premium features</div>
+              <button class="profile-explore-btn" id="profileMembershipBtn" onclick="switchTab('paymentPage', document.querySelector('.sidebar-link[data-page=paymentPage]'))">Explore plans</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="page" id="paymentPage">
+          <div class="section-title">Payment and Subscription</div>
+          <div class="dashboard-sub" style="margin-bottom:1.75rem">Both plans unlock unlimited interviews — Private and Government sector, all features. One-time pass, doesn't auto-renew.</div>
+
+          <!-- Shown only when the user currently has a live subscription -->
+          <div class="active-plan-banner hidden" id="activePlanBanner">
+            <div class="active-plan-left">
+              <span class="active-plan-crown">👑</span>
+              <div>
+                <div class="active-plan-name" id="activePlanName">—</div>
+                <div class="active-plan-sub" id="activePlanExpiry">—</div>
+              </div>
+            </div>
+            <div class="active-plan-days" id="activePlanDays">—</div>
+          </div>
+
+          <div class="plans-grid">
+            <div class="plan-card">
+              <div class="plan-badge-outline">Exam-Crunch</div>
+              <div class="plan-name">Weekly</div>
+              <div class="plan-price">₹99</div>
+              <div class="plan-cycle">7 days · ~₹14.1/day</div>
+              <ul class="plan-features">
+                <li>✅ Unlimited interviews</li>
+                <li>✅ Private &amp; Government sector</li>
+                <li>✅ All features unlocked</li>
+                <li>✅ One-time pass — no auto-renewal</li>
+              </ul>
+              <button class="plan-btn" id="weeklyBtn" onclick="startCheckout('weekly', this)">Get Weekly</button>
+            </div>
+
+            <div class="plan-card featured">
+              <div class="plan-badge">Best Value</div>
+              <div class="plan-name">Monthly</div>
+              <div class="plan-price">₹299</div>
+              <div class="plan-cycle">30 days · ~₹10/day</div>
+              <ul class="plan-features">
+                <li>✅ Unlimited interviews</li>
+                <li>✅ Private &amp; Government sector</li>
+                <li>✅ All features unlocked</li>
+                <li>✅ One-time pass — no auto-renewal</li>
+              </ul>
+              <button class="plan-btn primary" id="monthlyBtn" onclick="startCheckout('monthly', this)">Get Monthly</button>
+            </div>
+          </div>
+
+          <div class="plans-footnote">Access ends exactly at your plan's expiry — you'll get a heads-up notification beforehand (2 days before for Weekly, 7 days before for Monthly), then can purchase again anytime.</div>
+
+          <div class="history-section-title">Payment History</div>
+          <div id="paymentHistoryWrap">
+            <div class="history-empty" id="paymentHistoryEmpty">No payments yet — your purchases will show up here.</div>
+            <table class="history-table hidden" id="paymentHistoryTable">
+              <thead>
+                <tr><th>Plan</th><th>Amount</th><th>Date</th><th>Valid Till</th><th>Status</th></tr>
+              </thead>
+              <tbody id="paymentHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="page" id="passwordPage">
+          <div class="section-title">Password</div>
+          <div class="password-card">
+            <div class="form-group">
+              <label class="form-label">Current Password<span class="required-mark">*</span></label>
+              <input type="password" class="form-input" placeholder="Enter current password" id="currentPasswordInput">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password<span class="required-mark">*</span></label>
+              <input type="password" class="form-input" placeholder="Choose a new password" id="newPasswordInput">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password<span class="required-mark">*</span></label>
+              <input type="password" class="form-input" placeholder="Re-enter new password" id="confirmPasswordInput">
+            </div>
+            <div class="password-hint">Forgot your current password instead? Use "Forgot Password" on the login page.</div>
+            <button class="primary-btn" id="updatePasswordBtn" onclick="handleChangePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hv-toast" id="hvToast"></div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="/js/dashboard.js" defer></script>
+  <script src="js/footer.js"></script>
+  <script src="js/translate.js"></script>
+</body>
+</html>
