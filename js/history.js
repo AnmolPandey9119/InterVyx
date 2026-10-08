@@ -19,17 +19,19 @@ if (!authToken) window.location.href = '/auth';
 
     function getScoreColor(score) {
       if (score == null) return 'var(--hv-text-faint)';
-      if (score >= 8) return '#22c55e';
-      if (score >= 6) return '#f59e0b';
-      return '#ef4444';
+      if (score >= 8) return 'var(--hv-text-green)';
+      if (score >= 6) return 'var(--hv-text-amber)';
+      return 'var(--hv-text-red)';
     }
 
     function getRecColor(rec) {
-      if (!rec) return '#1B6FC9';
-      if (rec.includes('Strong')) return '#22c55e';
-      if (rec === 'Hire') return '#1B6FC9';
-      if (rec === 'Borderline') return '#f59e0b';
-      return '#ef4444';
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const blue = dark ? '#8DB8F0' : '#1558A5';
+      if (!rec) return blue;
+      if (rec.includes('Strong')) return dark ? '#4ade80' : '#15803d';
+      if (rec === 'Hire') return blue;
+      if (rec === 'Borderline') return dark ? '#fbbf24' : '#b45309';
+      return dark ? '#f87171' : '#b91c1c';
     }
 
     function renderFeedback(feedback) {
@@ -73,17 +75,17 @@ if (!authToken) window.location.href = '/auth';
           ${strengths || improve ? `
             <div class="strengths-improve-grid">
               <div>
-                <div style="font-size:0.78rem;font-weight:700;color:#22c55e;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">Strengths</div>
+                <div style="font-size:0.78rem;font-weight:700;color:var(--hv-text-green);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">Strengths</div>
                 ${strengths}
               </div>
               <div>
-                <div style="font-size:0.78rem;font-weight:700;color:#f87171;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">Areas to Improve</div>
+                <div style="font-size:0.78rem;font-weight:700;color:var(--hv-text-red);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">Areas to Improve</div>
                 ${improve}
               </div>
             </div>` : ''}
           ${feedback.next_steps ? `
             <div>
-              <div style="font-size:0.78rem;font-weight:700;color:#F28A4B;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">🎯 Next Steps</div>
+              <div style="font-size:0.78rem;font-weight:700;color:var(--hv-text-orange);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">🎯 Next Steps</div>
               <div class="next-steps-box">${escapeHtml(feedback.next_steps)}</div>
             </div>` : ''}
           ${renderIntegrityReport(feedback.integrity_flags)}
@@ -93,13 +95,15 @@ if (!authToken) window.location.href = '/auth';
     function renderIntegrityReport(ir) {
       if (!ir) return '';
       const unmonitored = !!ir.camera_unavailable;
-      const color = unmonitored ? '#f59e0b'
-        : ir.verdict === 'Clean' ? '#22c55e'
-        : ir.verdict === 'Minor Concerns' ? '#f59e0b' : '#ef4444';
+      const dk = document.documentElement.getAttribute('data-theme') === 'dark';
+      const cAmber = dk ? '#fbbf24' : '#b45309', cGreen = dk ? '#4ade80' : '#15803d', cRed = dk ? '#f87171' : '#b91c1c';
+      const color = unmonitored ? cAmber
+        : ir.verdict === 'Clean' ? cGreen
+        : ir.verdict === 'Minor Concerns' ? cAmber : cRed;
       return `
         <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:1.5rem;margin-top:1.25rem">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
-            <div style="font-weight:700;color:#f87171">🔍 Integrity Report</div>
+            <div style="font-weight:700;color:var(--hv-text-red)">🔍 Integrity Report</div>
             <div style="padding:0.35rem 1rem;background:${color}22;border:1px solid ${color};border-radius:20px;color:${color};font-weight:700;font-size:0.85rem">
               ${escapeHtml(ir.verdict || '—')}${ir.integrity_score != null ? ` — ${ir.integrity_score}/100` : ''}
             </div>
@@ -109,11 +113,11 @@ if (!authToken) window.location.href = '/auth';
           ` : `
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;font-size:0.85rem">
               <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
-                <div style="font-size:1.4rem;font-weight:800;color:${(ir.tab_switches || 0) > 0 ? '#f87171' : '#22c55e'}">${ir.tab_switches ?? 0}</div>
+                <div style="font-size:1.4rem;font-weight:800;color:${(ir.tab_switches || 0) > 0 ? 'var(--hv-text-red)' : 'var(--hv-text-green)'}">${ir.tab_switches ?? 0}</div>
                 <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Tab Switches</div>
               </div>
               <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
-                <div style="font-size:1.4rem;font-weight:800;color:${(ir.window_switches || 0) > 2 ? '#f87171' : '#22c55e'}">${ir.window_switches ?? 0}</div>
+                <div style="font-size:1.4rem;font-weight:800;color:${(ir.window_switches || 0) > 2 ? 'var(--hv-text-red)' : 'var(--hv-text-green)'}">${ir.window_switches ?? 0}</div>
                 <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Window Switches</div>
               </div>
             </div>
@@ -137,7 +141,7 @@ if (!authToken) window.location.href = '/auth';
       };
       const r = map[i.interview_round];
       if (!r) return '';
-      return `<span class="sector-badge" style="background:rgba(242,138,75,0.15);color:#F28A4B;border:1px solid rgba(242,138,75,0.3)">${r.icon} ${r.label}</span>`;
+      return `<span class="sector-badge" style="background:rgba(242,138,75,0.15);color:var(--hv-text-orange);border:1px solid rgba(242,138,75,0.3)">${r.icon} ${r.label}</span>`;
     }
 
     function renderGovInfo(i) {
@@ -240,12 +244,12 @@ if (!authToken) window.location.href = '/auth';
           <div class="history-card-body" id="body-${i.id}">
             ${i.status === 'cheating_terminated' 
               ? `<div style="padding:1.5rem;background:rgba(239,68,68,0.06);border-top:1px solid rgba(239,68,68,0.2)">
-                  <div style="color:#f87171;font-weight:700;font-size:1rem;margin-bottom:0.5rem">🚨 Interview Terminated Due to Integrity Violation</div>
+                  <div style="color:var(--hv-text-red);font-weight:700;font-size:1rem;margin-bottom:0.5rem">🚨 Interview Terminated Due to Integrity Violation</div>
                   <div style="color:var(--hv-text-muted);font-size:0.9rem;line-height:1.6">This interview was terminated because cheating signals were detected (tab switching or multiple faces on camera). No score or feedback is available for this session.</div>
                 </div>`
               : i.status === 'failed'
               ? `<div style="padding:1.5rem;background:rgba(148,163,184,0.06);border-top:1px solid rgba(148,163,184,0.2)">
-                  <div style="color:#94a3b8;font-weight:700;font-size:1rem;margin-bottom:0.5rem">⚠️ Interview Failed</div>
+                  <div style="color:var(--hv-text-slate);font-weight:700;font-size:1rem;margin-bottom:0.5rem">⚠️ Interview Failed</div>
                   <div style="color:var(--hv-text-muted);font-size:0.9rem;line-height:1.6">${i.failure_reason ? escapeHtml(i.failure_reason) : 'This session could not be completed due to a technical issue.'}</div>
                   <div style="color:var(--hv-text-muted);font-size:0.82rem;margin-top:0.75rem">This attempt was not your fault — it has NOT been counted against your free interviews.</div>
                 </div>`
@@ -274,7 +278,7 @@ if (!authToken) window.location.href = '/auth';
       } catch (err) {
         console.error('History error:', err);
         document.getElementById('historyContainer').innerHTML =
-          '<div style="color:#f87171;padding:1rem">Could not load history. Is the backend running?</div>';
+          '<div style="color:var(--hv-text-red);padding:1rem">Could not load history. Is the backend running?</div>';
       }
     }
 
@@ -304,9 +308,9 @@ if (!authToken) window.location.href = '/auth';
 
     function aptScoreColor(pct) {
       if (pct == null) return 'var(--hv-text-faint)';
-      if (pct >= 70) return '#22c55e';
-      if (pct >= 40) return '#f59e0b';
-      return '#ef4444';
+      if (pct >= 70) return 'var(--hv-text-green)';
+      if (pct >= 40) return 'var(--hv-text-amber)';
+      return 'var(--hv-text-red)';
     }
 
     function formatAptDuration(seconds) {
@@ -325,7 +329,7 @@ if (!authToken) window.location.href = '/auth';
             <div class="empty-icon">🧮</div>
             <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">No aptitude tests yet</div>
             <div style="font-size:0.9rem">Take one from the Aptitude Test page to see your results here</div>
-            <button class="back-btn" style="margin-top:1.25rem;background:rgba(27,111,201,0.2);border-color:rgba(27,111,201,0.4);color:#F28A4B" onclick="window.location.href='/aptitude'">Take an Aptitude Test</button>
+            <button class="back-btn" style="margin-top:1.25rem;background:rgba(27,111,201,0.2);border-color:rgba(27,111,201,0.4);color:var(--hv-text-orange)" onclick="window.location.href='/aptitude'">Take an Aptitude Test</button>
           </div>`;
         return;
       }
@@ -366,7 +370,7 @@ if (!authToken) window.location.href = '/auth';
         } catch (err) {
           console.error('Aptitude review error:', err);
           document.getElementById(`apt-review-${id}`).innerHTML =
-            '<div style="color:#f87171;padding:1rem">Could not load this review.</div>';
+            '<div style="color:var(--hv-text-red);padding:1rem">Could not load this review.</div>';
           return;
         }
       }
@@ -408,7 +412,7 @@ if (!authToken) window.location.href = '/auth';
         console.error('Aptitude reports error:', err);
         aptReportsLoaded = false;
         document.getElementById('aptitudeReportsContainer').innerHTML =
-          '<div style="color:#f87171;padding:1rem">Could not load aptitude reports. Is the backend running?</div>';
+          '<div style="color:var(--hv-text-red);padding:1rem">Could not load aptitude reports. Is the backend running?</div>';
       }
     }
 
@@ -422,9 +426,9 @@ if (!authToken) window.location.href = '/auth';
 
     function codingScoreColor(pct) {
       if (pct == null) return 'var(--hv-text-faint)';
-      if (pct >= 70) return '#22c55e';
-      if (pct >= 40) return '#f59e0b';
-      return '#ef4444';
+      if (pct >= 70) return 'var(--hv-text-green)';
+      if (pct >= 40) return 'var(--hv-text-amber)';
+      return 'var(--hv-text-red)';
     }
 
     function renderCodingReports(attempts) {
@@ -436,7 +440,7 @@ if (!authToken) window.location.href = '/auth';
             <div class="empty-icon">💻</div>
             <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">No coding rounds yet</div>
             <div style="font-size:0.9rem">Take one from the Coding Round page to see your results here</div>
-            <button class="back-btn" style="margin-top:1.25rem;background:rgba(27,111,201,0.2);border-color:rgba(27,111,201,0.4);color:#F28A4B" onclick="window.location.href='/coding'">Start a Coding Round</button>
+            <button class="back-btn" style="margin-top:1.25rem;background:rgba(27,111,201,0.2);border-color:rgba(27,111,201,0.4);color:var(--hv-text-orange)" onclick="window.location.href='/coding'">Start a Coding Round</button>
           </div>`;
         return;
       }
@@ -477,7 +481,7 @@ if (!authToken) window.location.href = '/auth';
         } catch (err) {
           console.error('Coding review error:', err);
           document.getElementById(`coding-review-${id}`).innerHTML =
-            '<div style="color:#f87171;padding:1rem">Could not load this review.</div>';
+            '<div style="color:var(--hv-text-red);padding:1rem">Could not load this review.</div>';
           return;
         }
       }
@@ -513,7 +517,7 @@ if (!authToken) window.location.href = '/auth';
         console.error('Coding reports error:', err);
         codingReportsLoaded = false;
         document.getElementById('codingReportsContainer').innerHTML =
-          '<div style="color:#f87171;padding:1rem">Could not load coding reports. Is the backend running?</div>';
+          '<div style="color:var(--hv-text-red);padding:1rem">Could not load coding reports. Is the backend running?</div>';
       }
     }
 

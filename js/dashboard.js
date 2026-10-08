@@ -789,9 +789,9 @@ function formatDate(isoString) {
 
 function getScoreColor(score) {
   if (score == null) return 'var(--hv-text-faint)';
-  if (score >= 8) return '#22c55e';
-  if (score >= 6) return '#f59e0b';
-  return '#ef4444';
+  if (score >= 8) return 'var(--hv-text-green)';
+  if (score >= 6) return 'var(--hv-text-amber)';
+  return 'var(--hv-text-red)';
 }
 
 function renderFreeTrialBanner(remaining, total) {
@@ -856,7 +856,7 @@ function getRoundBadge(i) {
   };
   const r = map[i.interview_round];
   if (!r) return '';
-  return `<span class="sector-badge" style="background:rgba(242,138,75,0.15);color:#F28A4B;border:1px solid rgba(242,138,75,0.3)">${r.icon} ${r.label}</span>`;
+  return `<span class="sector-badge" style="background:rgba(242,138,75,0.15);color:var(--hv-text-orange);border:1px solid rgba(242,138,75,0.3)">${r.icon} ${r.label}</span>`;
 }
 
 function renderInterviews(interviews) {

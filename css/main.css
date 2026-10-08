@@ -67,8 +67,8 @@
 
     /* Text that sits on the app canvas or a glass panel */
     --hv-text-strong: #0B2A5B;
-    --hv-text-muted: rgba(11,42,91,0.66);
-    --hv-text-faint: rgba(11,42,91,0.42);
+    --hv-text-muted: rgba(11,42,91,0.76);
+    --hv-text-faint: rgba(11,42,91,0.66);
     --hv-text-hover: rgba(11,42,91,0.9);
 
     /* Low-opacity surface tints, tiered light → dark, used for inputs,
@@ -99,8 +99,8 @@
     --hv-glass-bg: rgba(255,255,255,0.045);
     --hv-glass-bg-hover: rgba(255,255,255,0.065);
     --hv-text-strong: #ffffff;
-    --hv-text-muted: rgba(255,255,255,0.66);
-    --hv-text-faint: rgba(255,255,255,0.42);
+    --hv-text-muted: rgba(255,255,255,0.72);
+    --hv-text-faint: rgba(255,255,255,0.60);
     --hv-text-hover: rgba(255,255,255,0.9);
     --hv-surface-1: rgba(255,255,255,0.035);
     --hv-surface-2: rgba(255,255,255,0.06);
@@ -509,3 +509,58 @@ body.has-app-sidebar .main-content { margin-left: 220px; }
   .app-sidebar-badge { display: none; } /* no room at this size — "coming soon" still enforced on click */
   body.has-app-sidebar .main-content { margin-left: 0; padding-bottom: 5rem; }
 }
+
+/* ════════════════════════════════════════════════
+   THEME CONTRAST TOKENS + FIXES
+   Accent text colours (green / amber / red / orange / slate) ke
+   light aur dark dono theme ke liye alag, readable shades.
+   Light = dark shades (cream par padhne ke liye), dark = bright shades.
+   ════════════════════════════════════════════════ */
+:root {
+  --hv-text-green:  #15803d;
+  --hv-text-amber:  #b45309;
+  --hv-text-red:    #b91c1c;
+  --hv-text-orange: #a8480b;
+  --hv-text-slate:  #475569;
+  --hv-text-blue:   #1558A5;
+}
+:root[data-theme="dark"] {
+  --hv-text-green:  #7CCB9B;
+  --hv-text-amber:  #fbbf24;
+  --hv-text-red:    #fca5a5;
+  --hv-text-orange: #FFAE7C;
+  --hv-text-slate:  #cbd5e1;
+  --hv-text-blue:   #8DB8F0;
+}
+/* Hamesha-dark surfaces (chips, question popup, code boxes) par bright shades hi chahiye,
+   chahe site light theme me ho. */
+.score-chip, .apt-stat-chip, .cr-stat-chip, .qb-modal, .cr-sample-case, .cr-case-row, .qb-case-row {
+  --hv-text-green:  #4ade80;
+  --hv-text-amber:  #fbbf24;
+  --hv-text-red:    #f87171;
+  --hv-text-orange: #F28A4B;
+  --hv-text-slate:  #94a3b8;
+  --hv-text-blue:   #8DB8F0;
+}
+
+/* Status / sector / difficulty badges */
+:root .status-completed { color: var(--hv-text-green); }
+:root .status-in_progress { color: var(--hv-text-amber); }
+:root:root:root .status-cheating_terminated { color: var(--hv-text-red); }
+:root:root:root .status-failed { color: var(--hv-text-slate); }
+:root .sector-badge { color: var(--hv-text-orange); }
+:root .stat-green { color: var(--hv-text-green); }
+
+/* History / leaderboard / question bank accents */
+:root .qa-question { color: var(--hv-text-orange); }
+:root .lb-row-score { color: var(--hv-text-orange); }
+:root .lb-podium-card.rank-3 .lb-podium-score { color: var(--hv-text-amber); }
+:root .qb-topic-tag { color: var(--hv-text-orange); }
+:root .qb-diff-easy { color: var(--hv-text-green); }
+:root .qb-diff-medium { color: var(--hv-text-amber); }
+:root .qb-diff-hard { color: var(--hv-text-red); }
+:root .personal-note-avatar { color: #ffffff; }
+:root:not([data-theme="dark"]) .qb-topic-chip.active { color: #0B2A5B; }
+:root:root:not([data-theme="dark"]) .lb-you-rank { color: #1558A5; }
+:root:root:not([data-theme="dark"]) .lb-you-score { color: #92400e; }
+:root .required-mark { color: var(--hv-text-red); }
