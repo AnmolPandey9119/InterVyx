@@ -33,7 +33,26 @@ function speakAsInterviewer(text, onDoneCallback) {
   // recognition को touch नहीं करते — सिर्फ isListening flag बंद करते हैं
   isListening = false;
 
+  const dot = document.getElementById('avatarDot');
+  const statusText = document.getElementById('avatarStatusText');
   const utterance = new SpeechSynthesisUtterance(text);
+  // Chrome can garbage-collect an utterance mid-speech and then never fire
+  // onend — which would freeze the whole interview waiting for a callback.
+  // Holding a global reference + a watchdog below makes that impossible.
+  window.__hvActiveUtterance = utterance;
+  let finished = false;
+  let watchdogId = null;
+  const finish = (isError) => {
+    if (finished) return;
+    finished = true;
+    if (watchdogId) clearTimeout(watchdogId);
+    dot.classList.remove('speaking');
+    statusText.textContent = 'Listening...';
+    const avatar = document.getElementById('aiAvatarVideo');
+    if (avatar) { avatar.pause(); avatar.currentTime = 0; }
+    if (onDoneCallback) onDoneCallback();
+    else autoStartListening();
+  };
   const voice = pickVoice();
   if (voice) utterance.voice = voice;
   utterance.lang = getLangConfig().speechLang;
@@ -42,9 +61,6 @@ function speakAsInterviewer(text, onDoneCallback) {
   utterance.rate = 0.92 + (Math.random() * 0.1 - 0.05);   // ~0.87–0.97
   utterance.pitch = 1.0 + (Math.random() * 0.08 - 0.04);   // ~0.96–1.04
 
-  const dot = document.getElementById('avatarDot');
-  const statusText = document.getElementById('avatarStatusText');
-
   utterance.onstart = () => {
     dot.classList.add('speaking');
     statusText.textContent = 'Speaking...';
@@ -52,22 +68,24 @@ function speakAsInterviewer(text, onDoneCallback) {
     const avatar = document.getElementById('aiAvatarVideo');
     if (avatar) avatar.play();
   };
-  utterance.onend = () => {
-    dot.classList.remove('speaking');
-    statusText.textContent = 'Listening...';
-    // Arjun चुप हो जाए → video pause करो
-    const avatar = document.getElementById('aiAvatarVideo');
-    if (avatar) { avatar.pause(); avatar.currentTime = 0; }
-    if (onDoneCallback) onDoneCallback();
-    else autoStartListening();
-  };
+  utterance.onend = () => finish(false);
   utterance.onerror = (err) => {
-    console.error('Speech synthesis runtime tracking failure:', err);
-    const avatar = document.getElementById('aiAvatarVideo');
-    if (avatar) { avatar.pause(); avatar.currentTime = 0; }
-    if (onDoneCallback) onDoneCallback();
-    else autoStartListening();
+    const code = err && err.error;
+    if (code === 'canceled' || code === 'interrupted') {
+      // We cancelled this on purpose (a newer message took over) — the new
+      // flow owns what happens next, so don't fire this one's callback too.
+      finished = true;
+      if (watchdogId) clearTimeout(watchdogId);
+      return;
+    }
+    console.error('Speech synthesis error:', code);
+    finish(true);
   };
+  // Watchdog: roughly 70ms per character at this rate + 6s grace. If the
+  // browser never reports completion, move on instead of hanging forever.
+  watchdogId = setTimeout(() => {
+    if (!finished) { try { window.speechSynthesis.cancel(); } catch (e) {} finish(true); }
+  }, Math.max(8000, text.length * 90 + 6000));
   window.speechSynthesis.speak(utterance);
 }
 
@@ -132,7 +150,13 @@ function setupSpeechRecognition() {
       const result = event.results[i];
       const t = pickBestAlternative(result);
       if (result.isFinal) {
-        speechBuffer += t + ' ';
+        const clean = t.trim();
+        // Android Chrome sometimes re-delivers the same final chunk (or one
+        // that is already the tail of what we have) — skip it, otherwise the
+        // answer gets doubled words like "I worked on I worked on".
+        const tail = speechBuffer.trim().slice(-Math.max(clean.length, 1));
+        if (!clean || (clean.length >= 6 && speechBuffer && tail.toLowerCase() === clean.toLowerCase())) continue;
+        speechBuffer += clean + ' ';
       } else {
         interimText += t;
       }
@@ -350,8 +374,11 @@ function armSilenceWatcher() {
     // silent-death failure mode. .stop() (not .abort()) finalizes whatever
     // was captured so far instead of discarding it — onend then restarts
     // a fresh session automatically.
+    // Only rotate when the candidate has paused briefly — rotating mid-word
+    // is what used to clip the end of sentences.
     if (recognitionRunning && lastRecognitionStartAt &&
-        Date.now() - lastRecognitionStartAt >= RECOGNITION_REFRESH_MS) {
+        Date.now() - lastRecognitionStartAt >= RECOGNITION_REFRESH_MS &&
+        Date.now() - lastSpeechActivityAt >= RECOGNITION_PAUSE_BEFORE_ROTATE_MS) {
       try { recognition.stop(); } catch (e) {}
     }
 
@@ -395,7 +422,7 @@ async function handleSilenceTimeout() {
 
   if (partialAnswer.length > 3) {
     // They'd started answering — use what was captured instead of discarding it
-    await saveQAToBackend(questionText, partialAnswer);
+    saveQAToBackend(questionText, partialAnswer);
     conversationHistory.push({ role: 'user', content: partialAnswer });
     answerInput.value = '';
     speechBuffer = '';
@@ -403,7 +430,7 @@ async function handleSilenceTimeout() {
     return;
   }
 
-  await saveQAToBackend(questionText, '[No response within 30 seconds]');
+  saveQAToBackend(questionText, '[No response within 30 seconds]');
   conversationHistory.push({ role: 'user', content: '[The candidate did not respond within 30 seconds — treat this as if they did not know the answer and move on]' });
   answerInput.value = '';
   speechBuffer = '';

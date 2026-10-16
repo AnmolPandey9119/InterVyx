@@ -60,6 +60,21 @@ def record_failure(key: str, window_seconds: int) -> None:
         _prune(key, window_seconds)
 
 
+def hit(key: str, max_attempts: int, window_seconds: int) -> tuple[bool, int]:
+    """Atomic check-and-record for general (non-login) throttling: counts THIS
+    call, and returns (limited, retry_after_seconds). Unlike is_limited +
+    record_failure, a request that gets rejected is not recorded again."""
+    with _lock:
+        if len(_attempts) > _MAX_TRACKED_KEYS:
+            _attempts.clear()
+        recent = _prune(key, window_seconds)
+        if len(recent) >= max_attempts:
+            retry_after = int(window_seconds - (time.time() - recent[0]))
+            return True, max(retry_after, 1)
+        _attempts[key].append(time.time())
+        return False, 0
+
+
 def clear(key: str) -> None:
     with _lock:
         _attempts.pop(key, None)

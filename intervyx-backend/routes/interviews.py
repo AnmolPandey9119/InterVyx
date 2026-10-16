@@ -549,53 +549,109 @@ async def cleanup_old_interviews(
 # POST /api/chat — Groq API proxy, with Gemini as a free fallback
 # Both keys stay server-side; frontend contract (data.choices[0]
 # .message.content) is unchanged no matter which provider answers.
+#
+# Speed + "don't hammer the API" design:
+#   1. One shared, keep-alive HTTP client (no TLS handshake per turn).
+#   2. Live interview turns use low reasoning effort on Groq — the
+#      question is 1-3 sentences, deep chain-of-thought just adds latency.
+#   3. If a provider answers 429, it's put on a short cooldown and
+#      traffic goes straight to the other one instead of retrying it.
+#   4. Per-user burst limiter on top of the per-interview call cap.
+#   5. Calls that fail on every provider are refunded from the
+#      per-interview cap so a provider outage can't lock a candidate out.
 # ============================================================
+import time
+import asyncio
+from models.rate_limiter import hit as _rate_hit
 
 # Statuses worth failing over on: 429 (rate/quota), 5xx (provider down),
-# 404 (model retired/renamed by the provider — a config problem on their
-# end, not a bad prompt, so it's worth trying the other provider).
-# A 4xx like 400/401 is a real request/auth problem — retrying on a
-# different provider won't fix a bad prompt or a bad key, so we don't.
+# 404 (model retired/renamed by the provider). 400/401 are real request/auth
+# problems — another provider won't fix a bad prompt or key.
 _FAILOVER_STATUSES = {404, 429, 500, 502, 503, 504}
 
+_http_client: "httpx.AsyncClient | None" = None
 
-async def _call_groq(messages: list, temperature: float, max_tokens: int) -> dict:
-    """Calls Groq. Raises RuntimeError on any failure so the caller can decide
-    whether to fail over to Gemini."""
+
+def _get_client() -> httpx.AsyncClient:
+    global _http_client
+    if _http_client is None or _http_client.is_closed:
+        _http_client = httpx.AsyncClient(
+            limits=httpx.Limits(max_connections=50, max_keepalive_connections=20, keepalive_expiry=60),
+            timeout=httpx.Timeout(connect=5.0, read=30.0, write=10.0, pool=5.0),
+        )
+    return _http_client
+
+
+# provider name -> unix time until which we skip it (set after a 429)
+_provider_cooldown_until: dict = {"groq": 0.0, "gemini": 0.0}
+_MAX_COOLDOWN_SECONDS = 60
+
+
+def _start_cooldown(provider: str, response: httpx.Response):
+    try:
+        wait = float(response.headers.get("retry-after", 20))
+    except (TypeError, ValueError):
+        wait = 20.0
+    wait = max(5.0, min(wait, _MAX_COOLDOWN_SECONDS))
+    _provider_cooldown_until[provider] = time.time() + wait
+    logger.warning(f"{provider} rate-limited — skipping it for {wait:.0f}s")
+
+
+def _in_cooldown(provider: str) -> bool:
+    return time.time() < _provider_cooldown_until.get(provider, 0.0)
+
+
+async def _call_groq(messages: list, temperature: float, max_tokens: int, task: str = "interview") -> dict:
+    """Raises RuntimeError on any failover-worthy failure."""
     groq_key = os.environ.get("GROQ_API_KEY")
     if not groq_key:
         raise RuntimeError("GROQ_API_KEY not configured")
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {groq_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "openai/gpt-oss-120b",
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens
-            },
-            timeout=30.0
-        )
+    body = {
+        "model": "openai/gpt-oss-120b",
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        # Live questions are 1-3 sentences: low reasoning = much faster first
+        # token. The one-shot report keeps more reasoning for accuracy.
+        "reasoning_effort": "medium" if task == "feedback" else "low",
+    }
+    headers = {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"}
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    timeout = 40.0 if task == "feedback" else 20.0
+
+    try:
+        client = _get_client()
+        response = await client.post(url, headers=headers, json=body, timeout=timeout)
+        if response.status_code == 400 and "reasoning_effort" in response.text:
+            # Model/param combo not accepted — retry once without it.
+            body.pop("reasoning_effort", None)
+            response = await client.post(url, headers=headers, json=body, timeout=timeout)
+    except httpx.HTTPError as e:
+        raise RuntimeError(f"groq_failover:network:{type(e).__name__}")
 
     if response.status_code != 200:
         logger.warning(f"Groq call failed: {response.status_code} {response.text[:300]}")
+        if response.status_code == 429:
+            _start_cooldown("groq", response)
         if response.status_code in _FAILOVER_STATUSES:
             raise RuntimeError(f"groq_failover:{response.status_code}")
         raise HTTPException(status_code=response.status_code, detail="Groq API error")
 
     result = response.json()
-    result["_provider"] = "groq"  # harmless extra field, useful for debugging in logs/devtools
+    try:
+        content = (result["choices"][0]["message"].get("content") or "").strip()
+    except (KeyError, IndexError, TypeError):
+        content = ""
+    if not content:
+        # Usually the token budget was eaten by reasoning — try the other provider.
+        raise RuntimeError("groq_failover:empty_content")
+    result["_provider"] = "groq"
     return result
 
 
 def _messages_to_gemini(messages: list):
-    """OpenAI-style [{role, content}, ...] -> Gemini's
-    (system_instruction_text_or_None, contents_list)."""
+    """OpenAI-style [{role, content}, ...] -> Gemini's (system_instruction, contents)."""
     system_parts = []
     contents = []
     for m in messages:
@@ -603,90 +659,116 @@ def _messages_to_gemini(messages: list):
         text = m.get("content", "")
         if role == "system":
             system_parts.append(text)
-        elif role == "assistant":
-            contents.append({"role": "model", "parts": [{"text": text}]})
+            continue
+        g_role = "model" if role == "assistant" else "user"
+        # Gemini rejects consecutive same-role turns in some cases — merge them.
+        if contents and contents[-1]["role"] == g_role:
+            contents[-1]["parts"][0]["text"] += "\n\n" + text
         else:
-            contents.append({"role": "user", "parts": [{"text": text}]})
+            contents.append({"role": g_role, "parts": [{"text": text}]})
+    if contents and contents[0]["role"] == "model":
+        contents.insert(0, {"role": "user", "parts": [{"text": "Begin."}]})
+    if not contents:
+        contents.append({"role": "user", "parts": [{"text": "Begin."}]})
     system_instruction = "\n\n".join(system_parts) if system_parts else None
     return system_instruction, contents
 
 
-async def _call_gemini(messages: list, temperature: float, max_tokens: int) -> dict:
-    """Calls Gemini and reshapes the response into the same
-    {"choices": [{"message": {"role": "assistant", "content": "..."}}]}
-    shape the frontend already expects from Groq."""
+async def _call_gemini(messages: list, temperature: float, max_tokens: int, task: str = "interview") -> dict:
+    """Reshapes Gemini's reply into the OpenAI-style shape the frontend expects."""
     gemini_key = os.environ.get("GEMINI_API_KEY")
     if not gemini_key:
         raise RuntimeError("GEMINI_API_KEY not configured")
 
     system_instruction, contents = _messages_to_gemini(messages)
-    # gemini-2.5-flash-lite was retired for new API keys (Google now returns
-    # 404 "no longer available to new users") — gemini-3.1-flash-lite is
-    # Google's direct low-cost/low-latency successor. Check current model
-    # availability at ai.google.dev if this needs to change again.
+    # Check current availability at ai.google.dev if this model gets retired.
     model = "gemini-3.1-flash-lite"
 
-    body = {
-        "contents": contents,
-        "generationConfig": {
-            "temperature": temperature,
-            "maxOutputTokens": max_tokens
-        }
-    }
+    generation_config = {"temperature": temperature, "maxOutputTokens": max_tokens}
+    if task == "feedback":
+        # Guarantees syntactically valid JSON for the report — far fewer
+        # "formatting issue" fallbacks on the results screen.
+        generation_config["responseMimeType"] = "application/json"
+
+    body = {"contents": contents, "generationConfig": generation_config}
     if system_instruction:
         body["system_instruction"] = {"parts": [{"text": system_instruction}]}
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
+    try:
+        response = await _get_client().post(
             f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-            headers={
-                "x-goog-api-key": gemini_key,
-                "Content-Type": "application/json"
-            },
+            headers={"x-goog-api-key": gemini_key, "Content-Type": "application/json"},
             json=body,
-            timeout=30.0
+            timeout=40.0 if task == "feedback" else 20.0,
         )
+    except httpx.HTTPError as e:
+        raise RuntimeError(f"gemini_failover:network:{type(e).__name__}")
 
     if response.status_code != 200:
         logger.warning(f"Gemini call failed: {response.status_code} {response.text[:300]}")
-        # Same failover contract as _call_groq: a retryable/provider-side
-        # status raises RuntimeError so the caller can fail over to Groq.
-        # Previously this always raised HTTPException here, which skipped
-        # the Groq fallback entirely and sent the raw error straight to
-        # the frontend — that's the bug that broke feedback generation.
+        if response.status_code == 429:
+            _start_cooldown("gemini", response)
         if response.status_code in _FAILOVER_STATUSES:
             raise RuntimeError(f"gemini_failover:{response.status_code}")
         raise HTTPException(status_code=response.status_code, detail="Gemini API error")
 
     data = response.json()
     try:
-        text = data["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError):
+        parts = data["candidates"][0]["content"]["parts"]
+        text = "".join(p.get("text", "") for p in parts).strip()
+    except (KeyError, IndexError, TypeError):
         logger.error(f"Unexpected Gemini response shape: {json.dumps(data)[:300]}")
-        # Malformed response is also worth failing over on rather than
-        # hard-failing the whole request.
         raise RuntimeError("gemini_failover:bad_response_shape")
+    if not text:
+        raise RuntimeError("gemini_failover:empty_content")
 
-    # Reshape to match what the Groq/OpenAI-style response looked like,
-    # so js/interview.js's `data.choices[0].message.content` keeps working.
     return {
         "choices": [{"message": {"role": "assistant", "content": text}}],
-        "_provider": "gemini"  # harmless extra field, useful for debugging in logs/devtools
+        "_provider": "gemini",
     }
 
 
 # ============================================================
 # /api/chat SAFEGUARDS
-#
-# This endpoint proxies to paid Groq/Gemini APIs, so it must never be
-# callable as a free-form LLM playground by an authenticated user. Every
-# call has to be tied to a real interview that belongs to the caller and
-# is still in progress, and is capped so a single interview can't be used
-# to run up an unbounded API bill.
+# Every call must belong to a real, in-progress interview of the caller,
+# and is capped so one interview can't run up an unbounded API bill.
 # ============================================================
-MAX_CHAT_CALLS_PER_INTERVIEW = 80   # a real 30-45 min session needs well under this
-SERVER_MAX_TOKENS = 1200            # hard ceiling — client-requested max_tokens is capped, never trusted outright
-MAX_MESSAGES_IN_PAYLOAD = 100       # bounds the size (and therefore cost) of a single call
+MAX_CHAT_CALLS_PER_INTERVIEW = 80
+SERVER_MAX_TOKENS = 1200
+MAX_MESSAGES_IN_PAYLOAD = 100
+MAX_CONTEXT_MESSAGES_INTERVIEW = 60   # non-system turns sent to the model for a live question
+MAX_CONTENT_CHARS = 6000              # per message — a resume/system prompt fits, a pasted novel doesn't
+USER_BURST_LIMIT = 10                 # /api/chat calls ...
+USER_BURST_WINDOW_SECONDS = 60        # ... per user per minute (normal use is ~1-3/min)
+MIN_SECONDS_BETWEEN_CALLS = 1.5       # same interview can't be spammed faster than this
+_last_call_at: dict = {}              # interview_id -> unix time of last accepted call
+
+
+def _prepare_messages(messages: list, task: str) -> list:
+    """Validates shape, caps size. System messages are always kept (they carry
+    the persona + the pacing note); older non-system turns are dropped first."""
+    cleaned = []
+    for m in messages:
+        if not isinstance(m, dict):
+            raise HTTPException(status_code=400, detail="Invalid message in payload")
+        role = m.get("role")
+        content = m.get("content")
+        if role not in ("system", "user", "assistant") or not isinstance(content, str):
+            raise HTTPException(status_code=400, detail="Invalid message in payload")
+        cleaned.append({"role": role, "content": content[:MAX_CONTENT_CHARS]})
+
+    if task == "feedback":
+        return cleaned  # the report needs the whole conversation
+
+    system_msgs = [m for m in cleaned if m["role"] == "system"]
+    convo = [m for m in cleaned if m["role"] != "system"]
+    if len(convo) > MAX_CONTEXT_MESSAGES_INTERVIEW:
+        convo = convo[-MAX_CONTEXT_MESSAGES_INTERVIEW:]
+    # keep persona/system first, then the conversation, pacing note (a system
+    # msg) stays last since it was appended last in the original order
+    base = [m for m in system_msgs[:1]]
+    tail_system = system_msgs[1:]
+    return base + convo + tail_system
 
 
 @router.post("/chat")
@@ -710,50 +792,81 @@ async def chat_with_groq(
     if interview.status != "in_progress":
         raise HTTPException(status_code=400, detail="This interview is no longer active")
 
-    # Guard against NULL: existing interview rows created before this column
-    # existed won't have a value backfilled by the auto-migration (it only
-    # ADDs the column, it doesn't set old rows to 0) — treat missing as 0
-    # rather than letting a None comparison/addition break a live interview.
+    # Per-user burst limit (protects the API keys from loops / abuse)
+    limited, retry_after = _rate_hit(f"chat:{current_user.id}", USER_BURST_LIMIT, USER_BURST_WINDOW_SECONDS)
+    if limited:
+        raise HTTPException(
+            status_code=429,
+            detail="You're going a bit fast — please wait a few seconds.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+    # Same-interview spam guard (double submits, runaway client loops)
+    now_ts = time.time()
+    last = _last_call_at.get(interview_id, 0.0)
+    if now_ts - last < MIN_SECONDS_BETWEEN_CALLS:
+        wait = max(1, int(MIN_SECONDS_BETWEEN_CALLS - (now_ts - last)) + 1)
+        raise HTTPException(status_code=429, detail="Please wait a moment.", headers={"Retry-After": str(wait)})
+    if len(_last_call_at) > 5000:
+        _last_call_at.clear()
+    _last_call_at[interview_id] = now_ts
+
     current_call_count = interview.chat_call_count or 0
     if current_call_count >= MAX_CHAT_CALLS_PER_INTERVIEW:
         logger.warning(f"/api/chat call-count limit hit: interview {interview_id}, user {current_user.id}")
         raise HTTPException(status_code=429, detail="This interview has reached its message limit")
 
     messages = request.get("messages", [])
-    if not isinstance(messages, list) or len(messages) > MAX_MESSAGES_IN_PAYLOAD:
+    if not isinstance(messages, list) or len(messages) > MAX_MESSAGES_IN_PAYLOAD or not messages:
         raise HTTPException(status_code=400, detail="Invalid or oversized messages payload")
 
-    temperature = request.get("temperature", 0.7)
-    # Never trust a client-supplied max_tokens beyond our own ceiling
-    max_tokens = min(request.get("max_tokens", 800), SERVER_MAX_TOKENS)
+    task = "feedback" if request.get("task") == "feedback" else "interview"
+    messages = _prepare_messages(messages, task)
+
+    try:
+        temperature = float(request.get("temperature", 0.7))
+    except (TypeError, ValueError):
+        temperature = 0.7
+    temperature = min(1.2, max(0.0, temperature))
+    # The report is an evaluation, not a creative task — keep it steadier.
+    if task == "feedback":
+        temperature = min(temperature, 0.4)
+
+    try:
+        requested_tokens = int(request.get("max_tokens", 800))
+    except (TypeError, ValueError):
+        requested_tokens = 800
+    max_tokens = max(64, min(requested_tokens, SERVER_MAX_TOKENS))
 
     interview.chat_call_count = current_call_count + 1
     db.commit()
 
-    # "feedback" = the one-shot end-of-interview report (quality matters more
-    # than speed, so it goes to Gemini). Anything else = the live, turn-by-turn
-    # question flow (latency matters most, so it goes to Groq). Each provider
-    # still backs up the other so a single provider outage never breaks a session.
-    task = request.get("task", "interview")
-
+    # Report = quality first (Gemini primary). Live turns = latency first (Groq primary).
     if task == "feedback":
-        primary, primary_name = _call_gemini, "Gemini"
-        secondary, secondary_name = _call_groq, "Groq"
+        order = [("gemini", _call_gemini), ("groq", _call_groq)]
     else:
-        primary, primary_name = _call_groq, "Groq"
-        secondary, secondary_name = _call_gemini, "Gemini"
+        order = [("groq", _call_groq), ("gemini", _call_gemini)]
+    # If the primary was just rate-limited, don't poke it again — go straight to the other.
+    if _in_cooldown(order[0][0]) and not _in_cooldown(order[1][0]):
+        order.reverse()
 
-    try:
-        result = await primary(messages, temperature, max_tokens)
-        logger.info(f"/api/chat task='{task}' served by {primary_name}")
-        return result
-    except RuntimeError as e:
-        logger.warning(f"{primary_name} unavailable for task='{task}' ({e}) — falling back to {secondary_name}")
+    last_error = None
+    for name, fn in order:
+        try:
+            result = await fn(messages, temperature, max_tokens, task)
+            logger.info(f"/api/chat task='{task}' served by {name}")
+            return result
+        except RuntimeError as e:
+            last_error = e
+            logger.warning(f"{name} unavailable for task='{task}' ({e})")
 
+    # Nothing answered — this attempt shouldn't count against the interview's cap.
     try:
-        result = await secondary(messages, temperature, max_tokens)
-        logger.info(f"/api/chat task='{task}' served by {secondary_name} (fallback)")
-        return result
-    except RuntimeError as e:
-        logger.error(f"{secondary_name} fallback also unavailable: {e}")
-        raise HTTPException(status_code=500, detail="No AI provider configured")
+        interview.chat_call_count = max(0, (interview.chat_call_count or 1) - 1)
+        db.commit()
+    except Exception:
+        db.rollback()
+    _last_call_at.pop(interview_id, None)
+    logger.error(f"All AI providers failed for task='{task}': {last_error}")
+    raise HTTPException(status_code=503, detail="AI service is busy right now — please retry in a few seconds.",
+                        headers={"Retry-After": "5"})

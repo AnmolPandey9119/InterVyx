@@ -81,7 +81,7 @@
     footer.innerHTML =
       '<div class="hv-footer-brand">' +
         '<span style="font-weight:700;color:rgba(255,255,255,0.75)">Intervyx</span>' +
-        '<span>&middot; Built by <a href="https://linkedin.com/in/anmol-pandey-240105376" target="_blank" rel="noopener">Anmol Pandey</a></span>' +
+        '<span>&middot; Built by <a href="https://linkedin.com/in/anmol-pandey-240105376" target="_blank" rel="noopener">Anmol Pandey</a> and team</span>' +
         '<span id="visitorCount"></span>' +
       '</div>' +
       '<div class="hv-footer-links">' +

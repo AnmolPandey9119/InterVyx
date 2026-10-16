@@ -217,10 +217,19 @@ function buildPacingNote() {
   };
 }
 
-async function callGroqAPI(messages, _isRetry = false, task = 'interview') {
+async function callGroqAPI(messages, _isRetry = false, task = 'interview', _attempt = 0) {
+  // Retry policy (kept deliberately gentle so we never hammer the API):
+  //  - 429 from our server/provider: wait exactly as long as Retry-After says
+  //  - 5xx / network / timeout: one more try after a short backoff
+  //  - other 4xx (bad request, auth, interview ended): fail immediately, retrying can't help
+  const MAX_ATTEMPTS = 3;
+  const controller = new AbortController();
+  const timeoutMs = task === 'feedback' ? 60000 : 30000;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${BACKEND_URL}/api/chat`, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
@@ -229,23 +238,31 @@ async function callGroqAPI(messages, _isRetry = false, task = 'interview') {
         messages,
         task,
         interview_id: currentInterviewId,
-        temperature: 0.85,
-        max_tokens: 800,
-        frequency_penalty: 0.4,
-        presence_penalty: 0.3
+        temperature: task === 'feedback' ? 0.3 : 0.85,
+        max_tokens: task === 'feedback' ? 1100 : 700
       })
     });
-    if (!res.ok) throw new Error(`Chat API error: ${res.status}`);
-    const data = await res.json();
-    return data.choices[0].message.content.trim();
-  } catch (err) {
-    // One quick retry so a transient network blip doesn't kill the whole
-    // session — only a genuine, repeated failure gets reported as failed.
-    if (!_isRetry) {
-      await new Promise(r => setTimeout(r, 1500));
-      return callGroqAPI(messages, true, task);
+    if (!res.ok) {
+      const err = new Error(`Chat API error: ${res.status}`);
+      err.status = res.status;
+      err.retryAfter = parseInt(res.headers.get('Retry-After') || '0', 10) || 0;
+      throw err;
     }
-    throw err;
+    const data = await res.json();
+    const text = (data.choices?.[0]?.message?.content || '').trim();
+    if (!text) throw Object.assign(new Error('Empty AI response'), { status: 502 });
+    return text;
+  } catch (err) {
+    const status = err.status || 0; // 0 = network error or timeout (AbortError)
+    const retryable = status === 0 || status === 429 || status >= 500;
+    if (!retryable || _attempt + 1 >= MAX_ATTEMPTS) throw err;
+    const waitMs = status === 429 && err.retryAfter
+      ? Math.min(err.retryAfter, 20) * 1000 + 250
+      : 1500 * (_attempt + 1);
+    await new Promise(r => setTimeout(r, waitMs));
+    return callGroqAPI(messages, true, task, _attempt + 1);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -374,17 +391,43 @@ async function loadNextQuestion() {
   }
 }
 
-async function saveQAToBackend(questionText, answerText) {
+// Saved in the background: the next question no longer waits for this
+// round-trip. Every save is tracked so the report step can wait for all of
+// them to land before it finishes (see flushPendingSaves).
+function saveQAToBackend(questionText, answerText) {
+  const orderIndex = questionCount; // capture now — questionCount changes before the request lands
+  const p = _saveQAOnce(questionText, answerText, orderIndex);
+  pendingSaves.push(p);
+  p.finally(() => { pendingSaves = pendingSaves.filter(x => x !== p); });
+  return p;
+}
+
+async function flushPendingSaves() {
+  try { await Promise.allSettled(pendingSaves.slice()); } catch (e) { /* individual failures already logged */ }
+}
+
+async function _saveQAOnce(questionText, answerText, orderIndex, _retried = false) {
   try {
-    await fetch(`${BACKEND_URL}/api/interviews/${currentInterviewId}/questions`, {
+    const res = await fetch(`${BACKEND_URL}/api/interviews/${currentInterviewId}/questions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
       },
-      body: JSON.stringify({ question_text: questionText, answer_text: answerText, order_index: questionCount })
+      body: JSON.stringify({ question_text: questionText, answer_text: answerText, order_index: orderIndex }),
+      keepalive: true
     });
-  } catch (err) { console.error('Could not save Q&A:', err); }
+    if (!res.ok && res.status >= 500 && !_retried) {
+      await new Promise(r => setTimeout(r, 1000));
+      return _saveQAOnce(questionText, answerText, orderIndex, true);
+    }
+  } catch (err) {
+    console.error('Could not save Q&A:', err);
+    if (!_retried) {
+      await new Promise(r => setTimeout(r, 1000));
+      return _saveQAOnce(questionText, answerText, orderIndex, true);
+    }
+  }
 }
 
 async function submitAnswer() {
@@ -404,7 +447,7 @@ async function submitAnswer() {
   trackResponseTime();
 
   const questionText = document.getElementById('currentQuestion').textContent;
-  await saveQAToBackend(questionText, answerText);
+  saveQAToBackend(questionText, answerText);
   conversationHistory.push({ role: 'user', content: answerText });
   answerInput.value = '';
   speechBuffer = '';
@@ -417,7 +460,7 @@ async function skipQuestion() {
   stopListening();
 
   const questionText = document.getElementById('currentQuestion').textContent;
-  await saveQAToBackend(questionText, '[Skipped]');
+  saveQAToBackend(questionText, '[Skipped]');
   conversationHistory.push({ role: 'user', content: '[Candidate skipped this question]' });
   document.getElementById('answerInput').value = '';
   speechBuffer = '';
@@ -625,6 +668,7 @@ return {
 }
 
 async function generateAndSaveFeedback() {
+  await flushPendingSaves(); // every answer must be stored before the report/transcript is finalized
   // पहले recording choice मांगो
   await new Promise((resolve) => {
     showRecordingChoiceModal((choice) => {

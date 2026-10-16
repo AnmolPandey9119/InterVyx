@@ -37,6 +37,7 @@ let responseTimes = [];
 let silenceWatcherId = null;
 let lastSpeechActivityAt = null;
 const SILENCE_TIMEOUT_MS = 30000; // 30 seconds
+let pendingSaves = []; // in-flight Q&A saves — awaited before the report so nothing is lost
 let answerInFlight = false; // guards against double-advancing (manual submit racing the timeout)
 
 // Interview pacing — there's no fixed question count. Arjun decides when to
@@ -54,8 +55,9 @@ const INTERVIEW_HARD_CUTOFF_MINUTES = 48;      // absolute safety net if he hasn
 // We proactively rotate sessions before that can happen, and keep a hard
 // fallback in case a rotation itself gets silently dropped.
 let lastRecognitionStartAt = null;
-const RECOGNITION_REFRESH_MS = 12000;       // rotate well before any browser-internal timeout
-const RECOGNITION_STUCK_GRACE_MS = 5000;    // extra grace before declaring a session truly stuck
+const RECOGNITION_REFRESH_MS = 40000;       // rotate only if the session gets old; rotation itself waits for a pause in speech (see armSilenceWatcher)
+const RECOGNITION_PAUSE_BEFORE_ROTATE_MS = 1200; // only rotate when the candidate has been quiet this long, so words are never cut mid-sentence
+const RECOGNITION_STUCK_GRACE_MS = 15000;    // extra grace before declaring a session truly stuck
 
 // Mic volume monitor — Web Speech API can't be fed a boosted/processed
 // stream directly, so instead of silently mishearing quiet speakers we
