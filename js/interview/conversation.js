@@ -6,6 +6,36 @@
 //   state.js -> setup.js -> media.js -> speech.js -> conversation.js -> recording.js
 // ════════════════════════════════════════════════
 
+// ════════════════════════════════════════════════
+// COURTESY & MANNERS
+// The interviewer used to fire bare questions with no lead-in — no greeting,
+// no acknowledgement of the previous answer, no polite phrasing — which
+// felt cold and robotic. This block is injected into every system prompt
+// (private + government, every round type) so good manners are a hard rule,
+// not something the model does only when it happens to feel like it.
+// ════════════════════════════════════════════════
+function buildMannersBlock() {
+  const respectLine = (selectedLanguage === 'hinglish' || selectedLanguage === 'hindi')
+    ? `Always address the candidate with the respectful "aap" form and its matching verbs (e.g. "aap bataiye", "kya aap samjha sakte hain") — NEVER "tu", "tum", "tujhe" or "tera". Use polite phrasing like "kripya", "zara", "agar aap chahein".`
+    : (selectedLanguage === 'english' || !selectedLanguage)
+      ? `Use polite phrasing such as "could you please", "would you mind walking me through", "I'd like to understand".`
+      : `Always use the formal, respectful form of address in this language (never the casual or familiar "you"), and polite phrasing throughout.`;
+
+  return `COURTESY & MANNERS — THIS IS A HARD RULE, NOT A STYLE SUGGESTION:
+You are a well-mannered, respectful professional. Candidates are nervous and giving their time — treat them accordingly. A question thrown out with no lead-in is the single biggest thing that makes you feel like a bot.
+- EVERY reply after your first one has exactly two parts, in this order: (1) one short, courteous acknowledgement of what the candidate just said — thank them, appreciate a specific point, or neutrally note what they explained — then (2) your ONE question, phrased politely. Never start a reply with the bare question itself.
+- Make the acknowledgement specific to their actual answer and vary the wording every turn. Do not praise a weak or wrong answer falsely — for those, stay neutral and kind ("Thank you for explaining that, let me understand one part a little better") and then probe.
+- When the topic changes, use a natural transition ("Alright, let's talk about your projects now", "Thank you — shifting gears a little") instead of jumping.
+- ${respectLine}
+- Your very first message: the candidate has just been welcomed with a short hello and your name, so do not repeat a full self-introduction. Open with one warm line (thank them for joining, set them at ease) and then politely ask them to introduce themselves.
+- If the candidate skipped a question, stayed silent, or says they don't know: be gracious about it ("No problem at all, that's perfectly fine") and move on — never sound disappointed, sarcastic, or impatient.
+- If the candidate asks you to repeat or clarify something, do it patiently and politely, then continue.
+- Push back respectfully ("I'd like to dig a little deeper on that") — never curtly, never dismissively, never cutting them off.
+- Never use blunt, commanding openers like "Tell me...", "Explain...", "Answer this..." on their own — soften them ("Could you tell me...", "I'd love to hear...").
+- Never say things like "good place to stop", "that's all", or anything that sounds like a wrap-up unless you are genuinely ending the interview.
+- All of this must still be plain spoken text with no markdown or formatting symbols.`;
+}
+
 function buildSystemPrompt() {
   const personaLine = "You've conducted hundreds of interviews over the years and it shows in small ways: you're genuinely curious about how people think, not just what they know; rehearsed, buzzword-heavy answers make you dig a little harder rather than nod along; and you're fair, not trying to trip anyone up, but you don't hand out easy passes either. Let that come through in how you phrase things naturally — don't announce it, just let it shape your tone. Your formality can loosen slightly as the conversation goes on, the way it does when two people actually get into a real conversation, but stay professional throughout. IMPORTANT: Everything you write is spoken aloud by a text-to-speech voice and shown as plain conversational text — never use markdown or any formatting symbols (no **bold**, *italics*, # headers, `code`, bullet dashes, numbered lists). Write exactly the way a real person would say it out loud, plain sentences only.";
   const govLangLine = `Speak in ${getLangConfig().promptName}. Ask every question and give all guidance entirely in this language — do not switch to English unless the candidate does first.`;
@@ -50,11 +80,13 @@ INTERVIEW LENGTH & NATURAL ENDING:
 This is not a fixed-question-count quiz — it's a real conversation that should run roughly 30 to 45 minutes, the way an actual interview does, ending when you genuinely feel you've covered this candidate well rather than after some arbitrary number of questions. "Covered well" means you've touched: their introduction/background, their education, the ${govDomain}-relevant parts of their biodata, core knowledge/skills for the ${govRole} role, at least one deeper practical/scenario-style question, and at least one of the closing-style questions above (career direction, motivation for this role, or inviting their questions) — adjusted for whatever this candidate's biodata actually contains. From time to time you'll receive a short internal pacing note (never shown to the candidate) telling you the elapsed time and reminding you what's still worth covering — use it to pace yourself, don't rush to finish early and don't pad with repetitive questions just to run out the clock.
 
 WHAT MAKES YOU FEEL LIKE A REAL PERSON, NOT A BOT:
-- Occasionally react briefly to something specific the candidate just said before moving on — a short, genuine reaction tied to their actual content (not a generic "Great answer!" or "Interesting!" every time). Use this rarely and unpredictably; if you do it on every turn it becomes its own pattern, which is worse than not doing it.
+- Briefly acknowledge what the candidate just said before moving on — a short, genuine, courteous reaction tied to their actual content (not a generic "Great answer!" or "Interesting!" every time). Vary the wording and length of the acknowledgement so it never becomes a recognisable pattern, but never skip it — an interviewer who fires questions with no acknowledgement comes across as cold and rude.
 - Every so often, loop back to something they said earlier in the conversation and connect it to a new question — real interviewers remember and cross-reference; a bot that only ever asks about the immediately preceding answer feels scripted.
 - Don't apply a rigid formula of "good answer = harder question, bad answer = easier question" every single time — that pattern becomes obvious and gameable within a few exchanges. Sometimes push back or probe deeper on an answer that sounded good, the way a sharp interviewer tests whether someone really understands something or just said the right buzzwords. Sometimes throw in a scenario or "what would you do if..." question instead of a direct knowledge question, to mix up the texture.
 - Vary your sentence length and phrasing style turn to turn. Don't let every question follow the same template (e.g. don't always start with "Can you tell me..." or always end with "...and why?") — that repetition is itself a giveaway.
 - Ask specific questions grounded in this candidate's actual biodata and the ${govRole} role — never generic, interchangeable questions that could apply to anyone in any role.
+
+${buildMannersBlock()}
 
 RULES:
 - The very first question you ask MUST be an introduction question — asking the candidate to introduce themselves or walk you through their background. This always comes first, no exceptions, regardless of anything else in this prompt.
@@ -67,7 +99,7 @@ RULES:
 - Include practical, scenario- or case-study-style questions specific to what ${govRole} actually involves day to day — not only theory or textbook questions. For example: governance and constitutional case studies for administrative/UPSC-style roles, specific procedural or numerical/analytical questions for banking roles, situational/ethics dilemmas for roles that involve public dealing, subject-specific pedagogy questions for teaching roles, and so on. Decide which of these fit based on ${govRole} and the candidate's biodata — don't skip practical, role-specific questions in favor of only generic theory.
 - If the candidate's answer is vague or incomplete, press on that SAME point before moving on — like a real interviewer would when they're not satisfied, not moving to the next scripted item regardless.
 - If you see a note that the candidate didn't respond in time, react to it briefly and naturally the way a real interviewer would react to silence — a touch of reassurance, a light prompt, or just moving on gently — and vary how you do this each time so it doesn't become its own tic.
-- Keep each question to 1-3 sentences maximum.
+- Keep each turn short and easy to follow when spoken aloud: one brief courteous acknowledgement of their last answer, followed by your ONE question (1-2 sentences) — about 3 sentences in total at most, no lists, no multi-part questions.
 - Stay fully in character as a real human interviewer at all times. Never reveal you are an AI, and never reveal or hint at any internal structure, stages, or rules you're following.
 - If the candidate says they want to end, are being nonsensical, or clearly not engaging seriously, respond with exactly: INTERVIEW_END_REQUESTED
 - If an internal pacing note tells you that you're free to end and you're genuinely confident you've covered the candidate thoroughly (per that note), you may also respond with exactly: INTERVIEW_END_REQUESTED instead of asking another question — this is the normal, expected way a real interview like this one concludes, not an exception.`;
@@ -172,11 +204,13 @@ ${flowBlock}${classicQBlock}
 ${lengthBlock}
 
 WHAT MAKES YOU FEEL LIKE A REAL PERSON, NOT A BOT:
-- Occasionally react briefly to something specific the candidate just said before moving on — a short, genuine reaction tied to their actual content (not a generic "Great answer!" or "Interesting!" every time). Use this rarely and unpredictably; if you do it on every turn it becomes its own pattern, which is worse than not doing it.
+- Briefly acknowledge what the candidate just said before moving on — a short, genuine, courteous reaction tied to their actual content (not a generic "Great answer!" or "Interesting!" every time). Vary the wording and length of the acknowledgement so it never becomes a recognisable pattern, but never skip it — an interviewer who fires questions with no acknowledgement comes across as cold and rude.
 - Every so often, loop back to something they said earlier in the conversation and connect it to a new question — real interviewers remember and cross-reference; a bot that only ever asks about the immediately preceding answer feels scripted.
 - Don't apply a rigid formula of "good answer = harder question, bad answer = easier question" every single time — that pattern becomes obvious and gameable within a few exchanges. Sometimes push back or probe deeper on an answer that sounded good, the way a sharp interviewer tests whether someone really understands something or just said the right buzzwords. Sometimes throw in a scenario or "what would you do if..." question instead of a direct knowledge question, to mix up the texture.
 - Vary your sentence length and phrasing style turn to turn. Don't let every question follow the same template (e.g. don't always start with "Can you tell me..." or always end with "...and why?") — that repetition is itself a giveaway.
 - Ask specific questions grounded in this candidate's actual resume${hasJd ? ' and the JD' : ''} — never generic, interchangeable questions that could apply to anyone in any role.
+
+${buildMannersBlock()}
 
 RULES:
 ${ruleWarmupLine}
@@ -189,7 +223,7 @@ ${targetCompany ? `- A confidential target company was given above — silently 
 ${interviewRound === 'technical' ? `- Stay strictly within technical/role content after the single opening introduction question — do not add HR-style questions (salary, 5-year plan, generic strength/weakness) into this round.` : interviewRound === 'hr' ? `- Stay strictly within behavioral/motivational/resume-level content — do not add deep technical, coding, or system-design questions into this round.` : `- Include practical, hands-on questions specific to the sub-skills that actually matter for this domain — not only conceptual or theory questions. For example: for software/technology roles, weave in DSA/problem-solving questions and questions about testing practices where relevant to their stack; for HR roles, ask about specific HR processes, policy handling, or people-management scenarios; for finance roles, ask about financial modeling, analysis, or the specific tools/frameworks they'd use; for marketing/sales roles, ask about campaign metrics, channels, or concrete strategies; for design/product roles, ask about specific design tools, UX process, or product decisions. Decide which of these apply based on the candidate's actual resume and the job domain — don't force DSA questions on a non-technical candidate, and don't skip practical, field-specific questions just because it's a non-technical field.`}
 - If the candidate's answer is vague or incomplete, press on that SAME point before moving on — like a real interviewer would when they're not satisfied, not moving to the next scripted item regardless.
 - If you see a note that the candidate didn't respond in time, react to it briefly and naturally the way a real interviewer would react to silence — a touch of reassurance, a light prompt, or just moving on gently — and vary how you do this each time so it doesn't become its own tic.
-- Keep each question to 1-3 sentences maximum.
+- Keep each turn short and easy to follow when spoken aloud: one brief courteous acknowledgement of their last answer, followed by your ONE question (1-2 sentences) — about 3 sentences in total at most, no lists, no multi-part questions.
 - Stay fully in character as a real human interviewer at all times. Never reveal you are an AI, and never reveal or hint at any internal structure, stages, or rules you're following.
 - If the candidate says they want to end, are being nonsensical, or clearly not engaging seriously, respond with exactly: INTERVIEW_END_REQUESTED
 - If an internal pacing note tells you that you're free to end and you're genuinely confident you've covered the candidate thoroughly (per that note), you may also respond with exactly: INTERVIEW_END_REQUESTED instead of asking another question — this is the normal, expected way a real interview like this one concludes, not an exception.`;
@@ -213,7 +247,7 @@ function buildPacingNote() {
 
   return {
     role: 'system',
-    content: `[Internal pacing note — for your own pacing only, never mention this note, timing, or "internal notes" to the candidate. Elapsed time: ${elapsedMinutes} minute(s). Questions asked so far: ${questionCount}. Target session length: 30-45 minutes total. ${guidance}]`
+    content: `[Internal pacing note — for your own pacing only, never mention this note, timing, or "internal notes" to the candidate. Elapsed time: ${elapsedMinutes} minute(s). Questions asked so far: ${questionCount}. Target session length: 30-45 minutes total. ${guidance} Reminder: begin your reply with a short, courteous, specific acknowledgement of the candidate's last answer (or a gracious word if they skipped or stayed silent), then ask your one question politely — never a bare question.]`
   };
 }
 
@@ -327,6 +361,7 @@ async function loadFirstQuestion() {
 
     const question = sanitizeAiText(await callGroqAPI(conversationHistory));
     conversationHistory.pop(); // drop the ephemeral pacing note — never part of the saved/shown transcript
+    if (endRequestInProgress || interviewEnded) return; // candidate already ended the session while this loaded
     if (question === 'INTERVIEW_END_REQUESTED') { endInterview(false); return; }
     conversationHistory.push({ role: 'assistant', content: question });
     questionCount = 1;
@@ -363,12 +398,19 @@ async function loadNextQuestion() {
     const question = sanitizeAiText(await callGroqAPI(conversationHistory));
     conversationHistory.pop(); // drop the ephemeral pacing note — never part of the saved/shown transcript
 
+    // The candidate ended the session while this question was still loading —
+    // the sign-off is already being handled, so don't speak a stale question over it.
+    if (endRequestInProgress || interviewEnded) return;
+
     if (question === 'INTERVIEW_END_REQUESTED') {
-      const endMsg = selectedLanguage === 'hinglish'
-        ? 'Theek hai, aapne interview end karna chaha. Koi baat nahi — main aapka feedback taiyaar kar raha hoon.'
-        : "Alright, it seems you'd like to end the session. No problem — let me prepare your feedback.";
+      // The model decided to wrap up — either the interview ran its natural
+      // course, or the candidate is disengaged. The sign-off must match which
+      // of those it actually was, not always claim "you wanted to end".
+      const aiReason = getSessionContext().elapsedMinutes >= INTERVIEW_MIN_NATURAL_END_MINUTES ? 'natural' : 'ai_early';
+      endRequestInProgress = true; // block timer prompts while the sign-off is being written/spoken
+      const endMsg = await composeEndSignoff(aiReason);
       document.getElementById('aiBubble').textContent = endMsg;
-      speakAsInterviewer(endMsg, async () => { await endInterview(false); });
+      speakAsInterviewer(endMsg, async () => { await endInterview(false, true); });
       return;
     }
 
@@ -474,6 +516,7 @@ function startInterviewTimer() {
   interviewStartTime = Date.now();
   warningGiven = false;
   interviewEnded = false;
+  endRequestInProgress = false;
   timeUpSignoffGiven = false;
 
   timerInterval = setInterval(() => {
@@ -481,6 +524,8 @@ function startInterviewTimer() {
     const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
     const secs = (elapsed % 60).toString().padStart(2, '0');
     document.getElementById('interviewTimer').textContent = `${mins}:${secs}`;
+
+    if (endRequestInProgress) return; // candidate is already being signed off — don't talk over it
 
     if (elapsed >= INTERVIEW_WARNING_MINUTES * 60 && !warningGiven) {
       warningGiven = true;
@@ -494,7 +539,7 @@ function startInterviewTimer() {
       stopListening();
       window.speechSynthesis.cancel();
       document.getElementById('aiBubble').textContent = timeUpMsg;
-      speakAsInterviewer(timeUpMsg, async () => { await endInterview(true); });
+      speakAsInterviewer(timeUpMsg, async () => { await endInterview(true, true); });
     }
   }, 1000);
 }
@@ -509,34 +554,215 @@ function giveClosingWarning() {
   speakAsInterviewer(msg, null);
 }
 
-// Manually ending mid-conversation used to jump straight to the results
-// screen with zero acknowledgment — a dead giveaway that nothing human was
-// actually on the other end. A real interviewer always closes the loop
-// verbally before you leave the room, so give a short, varied sign-off first.
-function requestEndInterview() {
-  if (interviewEnded || answerInFlight) return;
+// ════════════════════════════════════════════════
+// ENDING THE INTERVIEW — HUMAN, CONTEXT-AWARE SIGN-OFF
+// Previously every manual end picked from the same two or three canned
+// lines ("that's a good place to stop...") no matter WHEN the candidate
+// ended — even on the very first question before answering anything. A real
+// interviewer reacts to the actual situation: someone leaving right at the
+// start gets a gentle, no-pressure goodbye; someone who sat through most of
+// the session gets a proper thank-you. Below, the sign-off is written by
+// the AI from the real session context (with a hand-written, equally
+// context-aware fallback if the AI is slow or unavailable), and it is
+// spoken exactly once — endInterview no longer repeats a second closing.
+// ════════════════════════════════════════════════
+let endRequestInProgress = false; // guards double-clicks on End Interview and timer collisions while signing off
+
+// Snapshot of how far the session actually got.
+function getSessionContext() {
+  const elapsedMinutes = interviewStartTime ? Math.floor((Date.now() - interviewStartTime) / 60000) : 0;
+  const candidateTurns = conversationHistory.filter(m => m.role === 'user');
+  const answeredCount = candidateTurns.filter(m => !isNonAnswer(m.content)).length;
+  const skippedCount = candidateTurns.length - answeredCount;
+
+  let phase;
+  if (answeredCount === 0) phase = 'none';                                  // left before giving a single real answer
+  else if (answeredCount <= 2) phase = 'early';                             // barely started
+  else if (elapsedMinutes >= 20 || answeredCount >= 10) phase = 'full';     // sat through most of it
+  else phase = 'mid';                                                       // a decent chunk, but not the whole thing
+
+  const firstName = (currentUser && currentUser.name) ? currentUser.name.trim().split(' ')[0] : '';
+  return { elapsedMinutes, answeredCount, skippedCount, phase, firstName };
+}
+
+// Hand-written fallback sign-offs — used instantly when the AI call is
+// slow or unavailable. Same context rules as the AI path, just pre-written.
+// Hinglish always uses the respectful "aap" form.
+function fallbackEndSignoff(reason, ctx) {
+  const hinglish = selectedLanguage === 'hinglish';
+  const n = ctx.firstName ? `, ${ctx.firstName}` : '';
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  // The AI wrapped up early because the candidate seemed disengaged / unable to continue.
+  if (reason === 'ai_early') {
+    return pick(hinglish ? [
+      `Theek hai${n}, lagta hai abhi shayad sahi waqt nahi hai, aur isme koi dikkat nahi. Aapke time ke liye bahut shukriya — jo hum cover kar paaye, uska feedback main taiyaar karta hoon.`,
+      `Koi baat nahi${n}. Aapne jitna time diya, uske liye shukriya. Jo baat hui hai, usi ke aadhaar par main aapka feedback banata hoon.`
+    ] : [
+      `That's alright${n} — it sounds like this may not be the best moment, and that's perfectly fine. Thank you for your time; I'll put together feedback on what we did cover.`,
+      `No problem at all${n}. Thank you for the time you gave today — I'll prepare feedback based on what we discussed.`
+    ]);
+  }
+
+  // The interview genuinely ran its course.
+  if (reason === 'natural') {
+    return pick(hinglish ? [
+      `Mujhe lagta hai jo hum cover karna chahte the, wo ho gaya${n}. Aapse baat karke bahut accha laga, shukriya. Ek minute dijiye, main aapka feedback taiyaar karta hoon.`,
+      `Yeh ek achhe mod par aakar poora hua${n}. Is thoughtful baatcheet ke liye shukriya — aapka feedback main abhi taiyaar karta hoon.`
+    ] : [
+      `I think we've covered everything I wanted to${n}. Thank you — it was a pleasure speaking with you. Give me a moment to put your feedback together.`,
+      `That brings us to a natural close${n}. Thanks for the thoughtful conversation — I'll have your feedback ready in a moment.`
+    ]);
+  }
+
+  // The candidate pressed End Interview — the wording depends on how far they got.
+  const bank = hinglish ? {
+    none: [
+      `Koi baat nahi${n}, bilkul theek hai. Hum abhi shuru hi hue the, isliye abhi feedback dene layak kuch nahi hai. Jab aap taiyaar hon, dobara aaiyega — hum fresh start karenge.`,
+      `Theek hai${n}, koi pressure nahi. Abhi tak aapka koi answer aaya hi nahi, toh report chhoti hi hogi. Jab bhi mann ho, wapas aakar dobara try kijiye.`
+    ],
+    early: [
+      `Samajh gaya${n}, aapke time ke liye shukriya. Humne sirf kuch hi sawaal cover kiye, isliye feedback bhi usi tak seemit rahega. Poore session ke liye kabhi bhi wapas aaiye — ab main jo baat hui hai uska feedback banata hoon.`,
+      `Theek hai${n}, shukriya. Abhi toh humne sirf shuruaat ki thi, toh feedback chhota hoga, lekin phir bhi kaam ka hoga. Ek minute dijiye, main taiyaar karta hoon.`
+    ],
+    mid: [
+      `Shukriya${n}, aapne jis tarah se apne answers share kiye, mujhe accha laga. Hum sab kuch cover nahi kar paaye, par aapke feedback ke liye kaafi kuch hai. Ek minute dijiye, main use taiyaar karta hoon.`,
+      `Theek hai${n}, aapke time ke liye dhanyavaad. Jitna hum cover kar paaye, usse mujhe achhi tasveer mil gayi hai — ab main aapka feedback taiyaar karta hoon.`
+    ],
+    full: [
+      `Bahut shukriya${n}, yeh ek achhi aur detailed baatcheet rahi. Aapke jawaabon se mujhe kaafi kuch samajhne ko mila. Ek minute dijiye, main aapka feedback taiyaar karta hoon.`,
+      `Dhanyavaad${n}, aapne poore session mein achhe se hissa liya. Ab main aapka feedback ek jagah jodta hoon — bas ek minute.`
+    ]
+  } : {
+    none: [
+      `No problem at all${n}. We'd only just begun, so there isn't anything to assess yet and your report will be very short. Whenever you feel ready, do come back and we'll start fresh.`,
+      `That's perfectly alright${n} — no pressure. Since we hadn't got to any answers yet, I won't have much to go on, but you're always welcome to try again whenever you're ready.`
+    ],
+    early: [
+      `Understood${n}, thank you for your time. We only covered a couple of questions, so my feedback will be limited to those — but do come back for a full session whenever you like. Let me put your notes together.`,
+      `Of course${n}, thank you. We'd only just got started, so the feedback will be brief, but it should still be useful. Give me a moment to prepare it.`
+    ],
+    mid: [
+      `Thank you${n}, I appreciate how you've walked me through your answers so far. We didn't get to everything I had in mind, but I have enough to give you useful feedback. Give me a moment to put it together.`,
+      `Alright${n}, thanks for your time. What we covered gives me a fair picture of how you're doing, so let me put your feedback together.`
+    ],
+    full: [
+      `Thank you so much${n} — that was a thorough, genuinely good conversation, and I enjoyed hearing about your background. Give me a moment while I put your feedback together.`,
+      `Thanks${n}, you've given this a proper go and I appreciate it. Let me pull together your feedback — it'll just take a moment.`
+    ]
+  };
+  return pick(bank[ctx.phase] || bank.mid);
+}
+
+// Asks the AI to write the sign-off from the real session context, so it
+// reflects exactly where and why the interview is ending. Any failure,
+// slowness, or off-format output quietly falls back to the pre-written line.
+async function composeEndSignoff(reason) {
+  const ctx = getSessionContext();
+  const fallback = fallbackEndSignoff(reason, ctx);
+
+  try {
+    const respectLine = (selectedLanguage === 'hinglish' || selectedLanguage === 'hindi')
+      ? ' Always address the candidate with the respectful "aap" form — never "tu" or "tum".'
+      : '';
+    const langLine = selectedSector === 'government'
+      ? `Speak in ${getLangConfig().promptName}.${respectLine}`
+      : (selectedLanguage === 'hinglish'
+          ? `Speak in natural Hinglish (mix of Hindi and English in Roman script).${respectLine}`
+          : 'Speak in clear, warm, professional English.');
+
+    let situation;
+    if (reason === 'ai_early') {
+      situation = 'You have decided to wrap up because the candidate seems unable or unwilling to continue seriously right now. Be kind and understanding, never accusatory or sarcastic.';
+    } else if (reason === 'natural') {
+      situation = 'The interview has run its natural course and you have covered what you wanted to. Close it warmly and sincerely.';
+    } else {
+      situation = {
+        none: 'The candidate pressed "End Interview" before giving even one real answer. Be gracious and pressure-free, and do not ask or guess why they are leaving. Gently mention that since no answers were given there is nothing to assess yet, so the report will be very brief, and invite them to come back and try again whenever they are ready. Do NOT say it is a good place to stop — nothing has really happened yet.',
+        early: 'The candidate chose to end the session after answering only one or two questions. Be understanding, not judgemental. Thank them, be honest that so little was covered that the feedback will be brief, and welcome them back for a full session. Do NOT say it is a good place to stop.',
+        mid: 'The candidate chose to end the session partway through — a fair amount was covered, but not everything. Thank them genuinely, acknowledge that you did not get to everything but have enough to give useful feedback.',
+        full: 'The candidate stayed for most of the session and is now ending it. Thank them sincerely for the effort and the conversation, and say you are preparing their feedback.'
+      }[ctx.phase] || 'The candidate chose to end the session. Thank them politely and say you are preparing their feedback.';
+    }
+
+    const recent = conversationHistory
+      .filter(m => m.role !== 'system')
+      .slice(-6)
+      .map(m => `${m.role === 'assistant' ? 'Interviewer' : 'Candidate'}: ${String(m.content).slice(0, 350)}`)
+      .join('\n');
+
+    const messages = [
+      {
+        role: 'system',
+        content: `You are ${INTERVIEWER_NAME}, a warm, well-mannered human interviewer closing out a mock interview session. ${langLine} Your words will be spoken aloud, so write plain conversational sentences only — no markdown, no lists, no quotation marks, no emojis. Never reveal you are an AI. Do not ask the candidate a question. Do not give scores or detailed feedback now. Do not use a canned phrase like "that's a good place to stop" unless it is genuinely accurate for where the session is.`
+      },
+      {
+        role: 'user',
+        content: `Situation: ${situation}\nFacts: the candidate gave ${ctx.answeredCount} real answer(s), skipped or missed ${ctx.skippedCount}, and the session lasted about ${ctx.elapsedMinutes} minute(s).${ctx.firstName ? ` Their first name is ${ctx.firstName}.` : ''}\n\nRecent conversation, for context only (do not repeat it):\n${recent || '(nothing yet — the first question was still open)'}\n\nWrite the spoken sign-off now: 2 to 3 short sentences. Mention that you are preparing their feedback, unless the situation above says otherwise. Reply with only the words you would say.`
+      }
+    ];
+
+    const raw = await Promise.race([
+      callGroqAPI(messages),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('sign-off timed out')), 6000))
+    ]);
+
+    const text = sanitizeAiText(raw || '').replace(/^["“”']+|["“”']+$/g, '').trim();
+    if (!text || text.length < 20 || text.length > 500 || /\?/.test(text) || /INTERVIEW_END_REQUESTED/.test(text)) {
+      return fallback;
+    }
+    return text;
+  } catch (err) {
+    console.warn('Sign-off generation fell back to the pre-written line:', err && err.message);
+    return fallback;
+  }
+}
+
+// End Interview button. Acknowledges the exit the way a person would, based
+// on how far the session actually got — then wraps up.
+async function requestEndInterview() {
+  if (interviewEnded || endRequestInProgress || answerInFlight) return;
+  endRequestInProgress = true;
+
   stopListening();
   window.speechSynthesis.cancel();
 
-  const englishSignoffs = [
-    "Alright, that's a good place to stop. Thanks for your time today — let me pull together your feedback.",
-    "Okay, I think that gives me enough to go on. Thanks for coming in — I'll have your feedback ready in a moment.",
-    "Sounds good, let's leave it there. Appreciate you walking me through your answers — give me a second to put your feedback together."
-  ];
-  const hinglishSignoffs = [
-    'Theek hai, yeh ek achha point hai rukne ke liye. Aapka time dene ke liye shukriya — main feedback taiyaar karta hoon.',
-    'Chaliye, yahin rukte hain. Aapke answers sunkar accha laga — ek second mein feedback ready kar deta hoon.'
-  ];
-  const options = selectedLanguage === 'hinglish' ? hinglishSignoffs : englishSignoffs;
-  const msg = options[Math.floor(Math.random() * options.length)];
+  // If the candidate was mid-answer when they pressed End, keep what they
+  // had said so far instead of throwing it away (same as the silence path).
+  // Skipped while the next question is still loading — the history's last
+  // entry is a temporary pacing note then and must not be disturbed.
+  const thinkingEl = document.getElementById('aiThinking');
+  const nextQuestionLoading = !!(thinkingEl && thinkingEl.classList.contains('show'));
+  const answerInput = document.getElementById('answerInput');
+  const partial = ((answerInput && answerInput.value) || speechBuffer || '').trim();
+  if (partial.length > 3 && questionCount > 0 && !nextQuestionLoading) {
+    const questionText = document.getElementById('currentQuestion').textContent;
+    await saveQAToBackend(questionText, partial);
+    conversationHistory.push({ role: 'user', content: partial });
+  }
+  if (answerInput) answerInput.value = '';
+  speechBuffer = '';
+
+  setAvatarThinking(true);
+  let msg;
+  try {
+    msg = await composeEndSignoff('user');
+  } finally {
+    setAvatarThinking(false);
+  }
+  if (interviewEnded) return; // something else (e.g. an integrity termination) already closed the session
 
   document.getElementById('aiBubble').textContent = msg;
-  speakAsInterviewer(msg, async () => { await endInterview(false); });
+  speakAsInterviewer(msg, async () => { await endInterview(false, true); });
 }
 
-async function endInterview(autoEnded = false) {
+// closingAlreadySpoken = true when the caller already said a proper
+// sign-off out loud — in that case we go straight to the feedback instead
+// of speaking a second, redundant goodbye right after the first.
+async function endInterview(autoEnded = false, closingAlreadySpoken = false) {
   if (interviewEnded) return;
   interviewEnded = true;
+  endRequestInProgress = true;
 
   clearInterval(timerInterval);
   isListening = false;
@@ -555,6 +781,20 @@ async function endInterview(autoEnded = false) {
   if (typeof unlockInterviewFullscreen === 'function') unlockInterviewFullscreen();
   window.speechSynthesis.cancel();
 
+  document.getElementById('currentQuestion').textContent = 'Interview complete — generating your feedback...';
+  document.getElementById('questionNumber').textContent = '✅ Done';
+
+  document.getElementById('answerInput').disabled = true;
+  document.querySelector('.secondary-btn').disabled = true;
+  document.querySelector('.primary-btn[onclick="submitAnswer()"]').disabled = true;
+
+  if (closingAlreadySpoken) {
+    await generateAndSaveFeedback();
+    return;
+  }
+
+  // Fallback closing for callers that haven't said goodbye themselves
+  // (e.g. integrity termination, or the model ending on the very first turn).
   const closingMsg = autoEnded
     ? (selectedLanguage === 'hinglish'
         ? 'Bahut badhiya! Humara interview session yahan khatam hota hai. Main aapka feedback taiyaar kar raha hoon.'
@@ -564,12 +804,6 @@ async function endInterview(autoEnded = false) {
         : "Alright, let's wrap up. Thank you — let me put together your feedback now.");
 
   document.getElementById('aiBubble').textContent = closingMsg;
-  document.getElementById('currentQuestion').textContent = 'Interview complete — generating your feedback...';
-  document.getElementById('questionNumber').textContent = '✅ Done';
-
-  document.getElementById('answerInput').disabled = true;
-  document.querySelector('.secondary-btn').disabled = true;
-  document.querySelector('.primary-btn[onclick="submitAnswer()"]').disabled = true;
 
   speakAsInterviewer(closingMsg, async () => {
     await generateAndSaveFeedback();
